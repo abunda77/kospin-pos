@@ -33,6 +33,7 @@ PENTING.txt
 /app/Providers/AppServiceProvider.php
 
 
+
 **/caddy
 frankenphp
 frankenphp-worker.php
