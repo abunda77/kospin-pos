@@ -71,7 +71,8 @@ class ProductResource extends Resource implements HasShieldPermissions
                 Forms\Components\Toggle::make('is_active')
                     ->required(),
                 Forms\Components\FileUpload::make('image')
-                    ->image(),
+                    ->image()
+                    ->visibility('public'),
                 Forms\Components\TextInput::make('barcode')
                     ->maxLength(255),
                 Forms\Components\Textarea::make('description')
