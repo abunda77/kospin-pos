@@ -39,7 +39,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => 'https://pos.kospinsinaraartha.co.id/storage', // Ubah ini
+            'url' => env('LIVEWIRE_ASSET_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
         ],

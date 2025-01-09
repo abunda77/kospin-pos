@@ -156,11 +156,11 @@ return [
     |
     */
 
-    'pagination_theme' => 'tailwind',
+    // 'pagination_theme' => 'tailwind',
 
-    'asset_url' => 'https://pos.kospinsinaraartha.co.id',
+    // 'asset_url' => env('ASSET_URL'),
 
-    'app_url' => 'https://pos.kospinsinaraartha.co.id',
+    // 'app_url' => env('ASSET_URL'),
 
-    'middleware_group' => ['web'],
+    // 'middleware_group' => ['web'],
 ];
