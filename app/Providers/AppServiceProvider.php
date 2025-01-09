@@ -29,9 +29,9 @@ class AppServiceProvider extends ServiceProvider
             $this->app['request']->server->set('HTTPS', true);
 
             // Tambahkan ini untuk Livewire
-            // Component::macro('redirectTo', function ($url) {
-            //     return str_replace('http://', 'https://', $url);
-            // });
+            Component::macro('redirectTo', function ($url) {
+                return str_replace('http://', 'https://', $url);
+            });
         }
 
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
