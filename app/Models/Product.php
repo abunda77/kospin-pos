@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -47,7 +48,10 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        return $this->image ? url('storage/'. $this->image) : null;
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return null;
     }
 
     public function scopeSearch($query, $value)
