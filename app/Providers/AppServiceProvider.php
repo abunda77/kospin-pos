@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Livewire\Component;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
         if (env('APP_ENV') !== 'local') {
             URL::forceScheme('https');
             $this->app['request']->server->set('HTTPS', true);
+
+            // Tambahkan ini untuk Livewire
+            Component::macro('redirectTo', function ($url) {
+                return str_replace('http://', 'https://', $url);
+            });
         }
 
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
