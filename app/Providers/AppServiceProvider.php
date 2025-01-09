@@ -24,15 +24,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // if (env('APP_ENV') !== 'local') {
-        //     URL::forceScheme('https');
-        //     $this->app['request']->server->set('HTTPS', true);
+        if (env('APP_ENV') !== 'local') {
+            URL::forceScheme('https');
+            $this->app['request']->server->set('HTTPS', true);
 
-        //     // Tambahkan ini untuk Livewire
-        //     // Component::macro('redirectTo', function ($url) {
-        //     //     return str_replace('http://', 'https://', $url);
-        //     // });
-        // }
+            // Tambahkan ini untuk Livewire
+            // Component::macro('redirectTo', function ($url) {
+            //     return str_replace('http://', 'https://', $url);
+            // });
+        }
 
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
             $openApi->secure(
