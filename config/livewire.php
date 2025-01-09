@@ -156,15 +156,15 @@ return [
     |
     */
 
-    // 'pagination_theme' => 'tailwind',
+    //'pagination_theme' => 'tailwind',
 
-    // 'asset_url' => 'http://localhost:8002',
-    // 'app_url' => 'http://localhost:8002',
+    //'asset_url' => 'http://localhost:8002',
+    //'app_url' => 'http://localhost:8002',
 
     // 'asset_url' => 'https://pos.kospinsinaraartha.co.id',
-    // 'app_url' => 'https://pos.kospinsinaraartha.co.id',
+    'app_url' => 'https://pos.kospinsinaraartha.co.id',
 
-    // 'middleware_group' => ['web'],
+    'middleware_group' => ['web'],
 
-    // 'middleware_group' => ['web'],
+
 ];
