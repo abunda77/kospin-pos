@@ -158,10 +158,6 @@ return [
 
     'pagination_theme' => 'tailwind',
 
-    'asset_url' => 'https://pos.kospinsinaraartha.co.id',
-    'app_url' => 'https://pos.kospinsinaraartha.co.id',
-
     'middleware_group' => ['web'],
-
 
 ];
