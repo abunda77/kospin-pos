@@ -39,7 +39,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => 'https://pos.kospinsinaraartha.co.id/storage', // Ubah ini
             'visibility' => 'public',
             'throw' => false,
         ],
