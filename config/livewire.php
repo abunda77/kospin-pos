@@ -67,7 +67,7 @@ return [
         'disk' => 'public',
         'rules' => 'file|mimes:png,jpg,jpeg|max:2048',
         'directory' => 'livewire-tmp',
-        'middleware' => ['web', 'auth'],
+        'middleware' => ['web'],
         'preview_mimes' => [   // Supported file types for temporary pre-signed file URLs...
             'png', 'gif', 'bmp', 'svg', 'wav', 'mp4',
             'mov', 'avi', 'wmv', 'mp3', 'm4a',
