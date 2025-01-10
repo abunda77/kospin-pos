@@ -37,7 +37,7 @@ class ImageResource extends Resource
                     // ->imageEditor()
                     ->directory('public/images')
                     ->visibility('public')
-                    ->onError(function ($error) {
+                    ->afterStateUpdated(function ($error) {
                         \Illuminate\Support\Facades\Log::error('Error uploading image: ' . $error->getMessage());
                     }),
                 Forms\Components\TextInput::make('title')
