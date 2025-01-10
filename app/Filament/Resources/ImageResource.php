@@ -29,17 +29,13 @@ class ImageResource extends Resource
         return $form
             ->schema([
                 Forms\Components\FileUpload::make('image')
-                    ->image()
+                    ->image(),
                     // ->imageResizeMode('cover')
                     // ->imageCropAspectRatio('16:9')
                     // ->imageResizeTargetWidth('1920')
                     // ->imageResizeTargetHeight('1080')
                     // ->imageEditor()
-                    ->directory('public/images')
-                    ->visibility('public')
-                    ->afterStateUpdated(function ($error) {
-                        \Illuminate\Support\Facades\Log::error('Error uploading image: ' . $error->getMessage());
-                    }),
+
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->maxLength(255),
