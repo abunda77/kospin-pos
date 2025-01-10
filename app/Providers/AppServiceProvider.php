@@ -26,10 +26,12 @@ class AppServiceProvider extends ServiceProvider
     {
         if (app()->environment('local')) {
             URL::forceScheme('https');
+            request()->server->set('HTTP_X_FORWARDED_PROTO', 'https');
         }
 
         if (app()->environment(['staging', 'production'])) {
             URL::forceScheme('https');
+            request()->server->set('HTTP_X_FORWARDED_PROTO', 'https');
         }
 
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
