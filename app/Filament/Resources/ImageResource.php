@@ -37,7 +37,6 @@ class ImageResource extends Resource
                     // ->imageEditor()
                     ->directory('public/images')
                     ->visibility('public')
-                    ->errorMessage('Gagal mengunggah gambar. Silakan coba lagi.')
                     ->onError(function ($error) {
                         \Illuminate\Support\Facades\Log::error('Error uploading image: ' . $error->getMessage());
                     }),
