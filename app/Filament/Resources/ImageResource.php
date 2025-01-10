@@ -36,7 +36,11 @@ class ImageResource extends Resource
                     // ->imageResizeTargetHeight('1080')
                     // ->imageEditor()
                     ->directory('public/images')
-                    ->visibility('public'),
+                    ->visibility('public')
+                    ->errorMessage('Gagal mengunggah gambar. Silakan coba lagi.')
+                    ->onError(function ($error) {
+                        \Illuminate\Support\Facades\Log::error('Error uploading image: ' . $error->getMessage());
+                    }),
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->maxLength(255),
