@@ -39,3 +39,7 @@ app/Providers/AppServiceProvider.php
 frankenphp
 frankenphp-worker.php
 
+
+**/caddy
+frankenphp
+frankenphp-worker.php
