@@ -263,7 +263,7 @@ class OrderResource extends Resource implements HasShieldPermissions
                             'order' => $order,
                             'order_items' => $order_items,
                             'setting' => $setting
-                        ]);
+                        ])->setPaper([0, 0, 226.77, 1000], 'portrait');
 
                         return response()->streamDownload(function () use ($pdf) {
                             echo $pdf->output();
