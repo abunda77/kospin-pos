@@ -2,27 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
+use Filament\Forms;
+use Filament\Tables;
 use App\Models\Order;
-use App\Models\Setting;
 use App\Models\Product;
+use App\Models\Setting;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Mike42\Escpos\Printer;
 use App\Models\OrderProduct;
 use App\Models\PaymentMethod;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Mike42\Escpos\EscposImage;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Notifications\Notification;
-use Filament\Tables\Actions\Action;
-use Mike42\Escpos\Printer;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\OrderResource\Pages;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
-use Mike42\Escpos\EscposImage;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use App\Filament\Resources\OrderResource\RelationManagers;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
 
@@ -134,57 +135,57 @@ class OrderResource extends Resource implements HasShieldPermissions
             ->actions([
                 Action::make('Print')
                     ->label('Cetak')
-                    ->hidden(fn () => Setting::first()->value('print_via_mobile')) // Ambil nilai dari model lain
+                    ->hidden(fn () => Setting::first()->value('print_via_mobile'))
                     ->action(function (Order $record) {
                         try {
 
                             $order = Order::findOrFail($record->id);
                             $order_items = OrderProduct::where('order_id', $order->id)->get();
                             $setting = Setting::first();
-                
+
                             // Sesuaikan nama printer Anda
                             $connector = new WindowsPrintConnector($setting->name_printer);
                             $printer = new Printer($connector);
-                
-                
+
+
                             // Muat gambar logo
-                
+
                             $logo = EscposImage::load(public_path('storage/'. $setting->image), true);
-                
-                
+
+
                               // Lebar kertas (58mm: 32 karakter, 80mm: 48 karakter)
                             $lineWidth = 32;
-                
+
                             // Fungsi untuk merapikan teks
                             function formatRow($name, $qty, $price, $lineWidth) {
                                 $nameWidth = 16; // Alokasi 16 karakter untuk nama produk
                                 $qtyWidth = 8;   // Alokasi 8 karakter untuk Qty
                                 $priceWidth = 8; // Alokasi 8 karakter untuk Harga
-                
+
                                 // Bungkus nama produk jika panjangnya melebihi alokasi
                                 $nameLines = str_split($name, $nameWidth);
-                
+
                                 // Siapkan variabel untuk hasil format
                                 $output = '';
-                
+
                                 // Tambahkan semua baris nama produk kecuali yang terakhir
                                 for ($i = 0; $i < count($nameLines) - 1; $i++) {
                                     $output .= str_pad($nameLines[$i], $lineWidth) . "\n"; // Baris dengan nama saja
                                 }
-                
+
                                 // Baris terakhir dengan Qty dan Harga
                                 $lastLine = $nameLines[count($nameLines) - 1]; // Baris terakhir dari nama
                                 $lastLine = str_pad($lastLine, $nameWidth);   // Tambahkan padding untuk nama
                                 $qty = str_pad($qty, $qtyWidth, " ", STR_PAD_BOTH); // Qty di tengah
                                 $price = str_pad($price, $priceWidth, " ", STR_PAD_LEFT); // Harga di kanan
-                
+
                                 // Gabungkan semua
                                 $output .= $lastLine . $qty . $price;
-                
+
                                 return $output;
                             }
-                
-                
+
+
                             // Header Struk
                             $printer->setJustification(Printer::JUSTIFY_CENTER);
                             $printer->bitImage($logo); // Cetak gambar logo
@@ -196,7 +197,7 @@ class OrderResource extends Resource implements HasShieldPermissions
                             $printer->text($setting->address . "\n");
                             $printer->text($setting->phone ."\n");
                             $printer->text("================================\n");
-                
+
                             // Detail Transaksi
                             $printer->setJustification(Printer::JUSTIFY_LEFT);
                             if ($record->name) {
@@ -215,9 +216,9 @@ class OrderResource extends Resource implements HasShieldPermissions
                                 $product = Product::find( $item->product_id);
                                 $printer->text(formatRow($product->name ,$item->quantity , number_format($item->unit_price), $lineWidth) . "\n");
                             }
-                
+
                             $printer->text("--------------------------------\n");
-                
+
                             $total = 0;
                             foreach($order_items as $item) {
                                 $total += $item->quantity * $item->unit_price;
@@ -225,13 +226,13 @@ class OrderResource extends Resource implements HasShieldPermissions
                             $printer->setEmphasis(true); // Tebal
                             $printer->text(formatRow("Total","",number_format($total), $lineWidth) . "\n");
                             $printer->setEmphasis(false); // Tebal
-                
+
                             // Footer Struk
                             $printer->setJustification(Printer::JUSTIFY_CENTER);
                             $printer->text("================================\n");
                             $printer->text("Terima Kasih!\n");
                             $printer->text("================================\n");
-                
+
                             $printer->cut();
                             $printer->close();
                             Notification::make()
@@ -246,10 +247,30 @@ class OrderResource extends Resource implements HasShieldPermissions
                             ->danger()
                             ->send();
                         }
-                
+
                     })
                     ->icon('heroicon-o-printer')
                     ->color('amber'),
+
+                Action::make('PrintPDF')
+                    ->label('Cetak Ulang Struk')
+                    ->action(function (Order $record) {
+                        $order = Order::findOrFail($record->id);
+                        $order_items = OrderProduct::where('order_id', $order->id)->get();
+                        $setting = Setting::first();
+
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('struk', [
+                            'order' => $order,
+                            'order_items' => $order_items,
+                            'setting' => $setting
+                        ]);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'struk-' . $record->id . '.pdf');
+                    })
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success'),
 
                 Tables\Actions\EditAction::make(),
             ])
