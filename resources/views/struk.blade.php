@@ -82,15 +82,15 @@
 
         .receipt .footer {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 2px;
             font-size: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
             height: 50px;
         }
 
         .receipt .footer p {
             margin: 0;
-            height: 500px;
+            height: 100px;
             line-height: 100px;
         }
     </style>
