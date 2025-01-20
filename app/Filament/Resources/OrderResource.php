@@ -17,6 +17,7 @@ use Mike42\Escpos\EscposImage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Log;
 use Filament\Forms\Components\Repeater;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,9 +49,9 @@ class OrderResource extends Resource implements HasShieldPermissions
 
     protected static ?string $navigationIcon = 'heroicon-m-shopping-bag';
 
-    protected static ?string $navigationLabel = 'Pemasukan';
+    protected static ?string $navigationLabel = 'Penjualan';
 
-    protected static ?string $pluralLabel = 'Pemasukan';
+    protected static ?string $pluralLabel = 'Penjualan';
 
     protected static ?string $navigationGroup = 'Menejemen keuangan';
 
@@ -141,6 +142,7 @@ class OrderResource extends Resource implements HasShieldPermissions
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])
@@ -288,7 +290,27 @@ class OrderResource extends Resource implements HasShieldPermissions
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function ($records) {
+                            // Kembalikan stok untuk setiap order yang akan dihapus
+                            foreach ($records as $record) {
+                                if ($record->orderProducts) {
+                                    foreach ($record->orderProducts as $orderProduct) {
+                                        $product = $orderProduct->product;
+                                        if ($product) {
+                                            Log::info('Mengembalikan stok produk (bulk delete):', [
+                                                'product_id' => $product->id,
+                                                'old_stock' => $product->stock,
+                                                'returned_quantity' => $orderProduct->quantity,
+                                                'new_stock' => $product->stock + $orderProduct->quantity
+                                            ]);
+
+                                            $product->increment('stock', $orderProduct->quantity);
+                                        }
+                                    }
+                                }
+                            }
+                        })
                 ]),
             ]);
     }
