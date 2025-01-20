@@ -130,11 +130,25 @@
                 <tfoot>
                     <tr>
                         @php
-                        $total = 0;
+                        $subtotal = 0;
                         foreach ($order_items as $item) {
-                        $total += $item->quantity * $item->unit_price;
+                            $subtotal += $item->quantity * $item->unit_price;
                         }
+                        $discount_amount = ($subtotal * $order->discount) / 100;
+                        $total = $subtotal - $discount_amount;
                         @endphp
+                        <th>Subtotal</th>
+                        <th></th>
+                        <th colspan="2" style="text-align: center;">{{ number_format($subtotal, 0, ',', '.') }}</th>
+                    </tr>
+                    @if($order->discount > 0)
+                    <tr>
+                        <th>Diskon ({{ $order->discount }}%)</th>
+                        <th></th>
+                        <th colspan="2" style="text-align: center;">{{ number_format($discount_amount, 0, ',', '.') }}</th>
+                    </tr>
+                    @endif
+                    <tr>
                         <th>Total</th>
                         <th></th>
                         <th colspan="2" style="text-align: center;">{{ number_format($total, 0, ',', '.') }}</th>

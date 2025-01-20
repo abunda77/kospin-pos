@@ -19,6 +19,8 @@ class Order extends Model
         'total_price',
         'note',
         'payment_method_id',
+        // 'anggota_id',
+        'discount'
     ];
 
     public function paymentMethod(): BelongsTo
@@ -35,7 +37,7 @@ class Order extends Model
     {
         return $this->orderProducts()->with('product');
     }
-    
+
 }
 
 

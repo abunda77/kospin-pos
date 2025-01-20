@@ -22,7 +22,11 @@
         @endforeach
         @if(count($order_items) > 0)
         <div class="py-4 border-t border-gray-100 bg-gray-50 dark:bg-gray-700 ">
-            <h3 class="text-lg font-semibold text-center">Total: Rp {{number_format($this->calculateTotal(), 0, ',', '.')}}</h3>
+            <h3 class="text-lg font-semibold text-center">Subtotal: Rp {{number_format($this->calculateTotal() * 100 / (100 - $discount), 0, ',', '.')}}</h3>
+            @if($discount > 0)
+                <h3 class="text-md text-center text-gray-600">Diskon ({{$discount}}%): Rp {{number_format(($this->calculateTotal() * 100 / (100 - $discount)) * $discount / 100, 0, ',', '.')}}</h3>
+            @endif
+            <h3 class="text-xl font-bold text-center text-primary-600">Total: Rp {{number_format($this->calculateTotal(), 0, ',', '.')}}</h3>
         </div>
         @endif
 
@@ -136,7 +140,11 @@
         @endforeach
         @if(count($order_items) > 0)
         <div class="py-4 ">
-            <h3 class="text-lg font-semibold text-center">Total: Rp {{number_format($this->calculateTotal(), 0, ',', '.')}}</h3>
+            <h3 class="text-lg font-semibold text-center">Subtotal: Rp {{number_format($this->calculateTotal() * 100 / (100 - $discount), 0, ',', '.')}}</h3>
+            @if($discount > 0)
+                <h3 class="text-md text-center text-gray-600">Diskon ({{$discount}}%): Rp {{number_format(($this->calculateTotal() * 100 / (100 - $discount)) * $discount / 100, 0, ',', '.')}}</h3>
+            @endif
+            <h3 class="text-xl font-bold text-center text-primary-600">Total: Rp {{number_format($this->calculateTotal(), 0, ',', '.')}}</h3>
         </div>
         @endif
 

@@ -46,6 +46,7 @@ class Pos extends Component implements HasForms
         'nama_lengkap' => '',
         'nik' => '',
     ];
+    public $discount = 0;
 
     protected $listeners = [
         'scanResult' => 'handleScanResult',
@@ -116,7 +117,7 @@ class Pos extends Component implements HasForms
                         // Input Total Price
                         Forms\Components\TextInput::make('total_price')
                             ->label('Total Harga')
-                            ->readOnly()
+                            ->readOnly(false)
                             ->numeric()
                             ->default(fn () => $this->total_price)
                             ->columnSpan(1), // Menggunakan 1 kolom
@@ -127,6 +128,25 @@ class Pos extends Component implements HasForms
                             ->label('Metode Pembayaran')
                             ->options($this->payment_methods->pluck('name', 'id'))
                             ->columnSpan(1), // Menggunakan 1 kolom
+
+                        // Tambahkan field diskon
+                        Forms\Components\Select::make('discount')
+                            ->label('Diskon')
+                            ->options([
+                                0 => '0%',
+                                5 => '5%',
+                                10 => '10%',
+                                15 => '15%',
+                                20 => '20%',
+                                25 => '25%',
+                                30 => '30%',
+                            ])
+                            ->default(0)
+                            ->reactive()
+                            ->afterStateUpdated(function () {
+                                $this->calculateTotal();
+                            })
+                            ->columnSpan(1),
                     ])
             ]);
     }
@@ -238,6 +258,11 @@ class Pos extends Component implements HasForms
         foreach($this->order_items as $item) {
             $total += $item['quantity'] * $item['price'];
         }
+
+        // Hitung diskon
+        $discount_amount = ($total * $this->discount) / 100;
+        $total = $total - $discount_amount;
+
         $this->total_price = $total;
         return $total;
     }
@@ -278,10 +303,11 @@ class Pos extends Component implements HasForms
 
         // Buat order baru
         $order = Order::create([
-            'name' => $nama_customer ?: $this->name_customer, // Gunakan nama anggota jika ada, jika tidak gunakan name_customer
+            'name' => $nama_customer ?: $this->name_customer,
             'total_price' => $total_price,
             'payment_method_id' => $payment_method_id_temp,
-            'anggota_id' => $this->anggota_id
+            'anggota_id' => $this->anggota_id,
+            'discount' => $this->discount
         ]);
 
         // Update total pembelian anggota jika ada
@@ -317,6 +343,7 @@ class Pos extends Component implements HasForms
         $this->total_price = 0;
         $this->order_items = [];
         $this->anggota_id = null;
+        $this->discount = 0;
         session()->forget(['orderItems']);
 
     }
