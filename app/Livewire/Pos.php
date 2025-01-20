@@ -8,6 +8,7 @@ use App\Models\PaymentMethod;
 use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\Setting;
+use App\Models\Anggota;
 
 
 use Filament\Forms\Components\TextInput;
@@ -39,6 +40,12 @@ class Pos extends Component implements HasForms
     public $total_price;
     public $showConfirmationModal = false;
     public $orderToPrint = null;
+    public $anggota_id;
+    public $showAnggotaModal = false;
+    public $newAnggota = [
+        'nama_lengkap' => '',
+        'nik' => '',
+    ];
 
     protected $listeners = [
         'scanResult' => 'handleScanResult',
@@ -98,10 +105,12 @@ class Pos extends Component implements HasForms
                 Forms\Components\Grid::make(2) // Membagi form menjadi 5 kolom
                     ->schema([
                         // Input Name Customer
-                        Forms\Components\TextInput::make('name_customer')
-                            ->label('Name Customer')
+                        Forms\Components\Select::make('anggota_id')
+                            ->label('Anggota')
+                            ->options(Anggota::pluck('nama_lengkap', 'id'))
+                            ->searchable()
+                            ->preload()
                             ->nullable()
-                            ->maxLength(255)
                             ->columnSpan(2), // Menggunakan 1 kolom
 
                         // Input Total Price
@@ -132,7 +141,7 @@ class Pos extends Component implements HasForms
             $this->order_items = session('orderItems');
         }
         $this->payment_methods = PaymentMethod::all();
-        $this->form->fill(['payment_methods', $this->payment_methods]);
+        $this->form->fill();
     }
 
     public function addToOrder($productId)
@@ -258,12 +267,29 @@ class Pos extends Component implements HasForms
         ]);
 
         $payment_method_id_temp = $this->payment_method_id;
+        $total_price = $this->calculateTotal();
 
+        // Dapatkan nama anggota jika ada
+        $nama_customer = '';
+        if ($this->anggota_id) {
+            $anggota = Anggota::find($this->anggota_id);
+            $nama_customer = $anggota->nama_lengkap;
+        }
+
+        // Buat order baru
         $order = Order::create([
-            'name' => $this->name_customer,
-            'total_price' => $this->calculateTotal(),
-            'payment_method_id' => $payment_method_id_temp
+            'name' => $nama_customer ?: $this->name_customer, // Gunakan nama anggota jika ada, jika tidak gunakan name_customer
+            'total_price' => $total_price,
+            'payment_method_id' => $payment_method_id_temp,
+            'anggota_id' => $this->anggota_id
         ]);
+
+        // Update total pembelian anggota jika ada
+        if ($this->anggota_id) {
+            $anggota = Anggota::find($this->anggota_id);
+            $anggota->total_pembelian = $anggota->total_pembelian + $total_price;
+            $anggota->save();
+        }
 
         foreach($this->order_items as $item) {
             OrderProduct::create([
@@ -285,10 +311,12 @@ class Pos extends Component implements HasForms
         ->success()
         ->send();
 
+        // Reset anggota_id juga saat reset form
         $this->name_customer = '';
         $this->payment_method_id = null;
         $this->total_price = 0;
         $this->order_items = [];
+        $this->anggota_id = null;
         session()->forget(['orderItems']);
 
     }
@@ -428,7 +456,34 @@ class Pos extends Component implements HasForms
         $order = Order::findOrFail($this->orderToPrint);
 
         redirect(route('struk', $order->id));
-        
+
+    }
+
+    public function addAnggota()
+    {
+        $this->validate([
+            'newAnggota.nama_lengkap' => 'required|string|max:255',
+            'newAnggota.nik' => 'required|string|unique:anggotas,nik',
+        ]);
+
+        $anggota = Anggota::create([
+            'nama_lengkap' => $this->newAnggota['nama_lengkap'],
+            'nik' => $this->newAnggota['nik'],
+            'total_pembelian' => 0,
+        ]);
+
+        $this->anggota_id = $anggota->id;
+
+        // Reset form
+        $this->newAnggota = [
+            'nama_lengkap' => '',
+            'nik' => '',
+        ];
+
+        Notification::make()
+            ->title('Anggota berhasil ditambahkan')
+            ->success()
+            ->send();
     }
 
 }

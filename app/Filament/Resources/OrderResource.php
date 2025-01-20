@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Order;
+use App\Models\Anggota;
 use App\Models\Product;
 use App\Models\Setting;
 use Filament\Forms\Form;
@@ -66,9 +67,20 @@ class OrderResource extends Resource implements HasShieldPermissions
             ->schema([
                 Forms\Components\Grid::make()
                     ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->maxLength(255)
+                        Forms\Components\Select::make('name')
+                            ->label('Anggota')
+                            ->options(Anggota::pluck('nama_lengkap', 'id'))
+                            ->searchable()
+                            ->preload()
                             ->nullable()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $anggota = Anggota::find($state);
+                                    $set('name', $anggota->nama_lengkap);
+                                } else {
+                                    $set('name', null);
+                                }
+                            })
                             ->columnSpan(1),
                         Forms\Components\TextInput::make('email')
                             ->email()
