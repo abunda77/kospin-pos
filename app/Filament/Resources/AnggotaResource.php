@@ -12,6 +12,11 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Tables\Actions\ViewAction;
+use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class AnggotaResource extends Resource
 {
@@ -62,12 +67,51 @@ class AnggotaResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                TextEntry::make('nama_lengkap')
+                    ->label('Nama Lengkap'),
+                TextEntry::make('nik')
+                    ->label('NIK'),
+                TextEntry::make('total_pembelian')
+                    ->money('idr')
+                    ->label('Total Pembelian')
+                    ->badge()
+                    ->color('success'),
+                ImageEntry::make('barcode')
+                    ->label('Barcode')
+                    ->getStateUsing(function ($record) {
+                        $generator = new BarcodeGeneratorPNG();
+                        $barcode = base64_encode($generator->getBarcode($record->nik, $generator::TYPE_CODE_128, 2, 30));
+                        return 'data:image/png;base64,' . $barcode;
+                    })
+                    ->extraAttributes([
+                        'style' => 'background-color: #ffffff; max-width: 400px; max-height: 100px;'
+                    ]),
+                ImageEntry::make('qr_code')
+                    ->label('QR Code')
+                    ->getStateUsing(function ($record) {
+                        $url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . $record->nik;
+                        return $url;
+                    }),
+                TextEntry::make('created_at')
+                    ->label('Dibuat Pada')
+                    ->dateTime(),
+                TextEntry::make('updated_at')
+                    ->label('Diperbarui Pada')
+                    ->dateTime(),
             ]);
     }
 
@@ -84,6 +128,7 @@ class AnggotaResource extends Resource
             'index' => Pages\ListAnggotas::route('/'),
             'create' => Pages\CreateAnggota::route('/create'),
             'edit' => Pages\EditAnggota::route('/{record}/edit'),
+            'view' => Pages\ViewAnggota::route('/{record}'),
         ];
     }
 }

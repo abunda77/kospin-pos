@@ -99,7 +99,11 @@
 <body>
     <div class="receipt">
         <div class="logo">
-            <img src="{{ asset('storage/' . $setting->image) }}" alt="Logo">
+            {{-- @if($setting && $setting->image)
+                <img src="{{ asset('storage/' . $setting->image) }}" alt="Logoxxxx"> --}}
+            @if($setting && $setting->image)
+                <img src="{{ public_path('images/logo_sinaraartha.png') }}" alt="Logo Default" style="max-height: 100px;">
+            @endif
         </div>
         <div class="header">
             <h1>{{$setting->shop}}</h1>

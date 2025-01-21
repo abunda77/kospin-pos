@@ -24,13 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (app()->environment('local')) {
-            URL::forceScheme('http');
-            request()->server->set('HTTP_X_FORWARDED_PROTO', 'https');
-        }
+        $forceScheme = env('FORCE_SCHEME', 'http');
+        URL::forceScheme($forceScheme);
 
-        if (app()->environment(['staging', 'production'])) {
-            URL::forceScheme('https');
+        if ($forceScheme === 'https') {
             request()->server->set('HTTP_X_FORWARDED_PROTO', 'https');
         }
 

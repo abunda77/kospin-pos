@@ -31,7 +31,10 @@ storage/framework/testing/.gitignore
 storage/framework/views/.gitignore
 storage/logs/.gitignore
 PENTING.txt
-app/Providers/AppServiceProvider.php
+
+
+
+
 
 
 
