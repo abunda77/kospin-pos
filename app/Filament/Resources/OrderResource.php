@@ -101,6 +101,24 @@ class OrderResource extends Resource implements HasShieldPermissions
 
                 Forms\Components\Grid::make(2)
                     ->schema([
+                        Forms\Components\Select::make('discount')
+                            ->label('Diskon')
+                            ->options([
+                                0 => '0%',
+                                5 => '5%',
+                                10 => '10%',
+                                15 => '15%',
+                                20 => '20%',
+                                25 => '25%',
+                                30 => '30%',
+                            ])
+                            ->default(0)
+                            ->reactive()
+                            ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                self::updateTotalPrice($get, $set);
+                            })
+                            ->columnSpan(1),
+
                         Forms\Components\TextInput::make('total_price')
                             ->required()
                             ->readOnly()
@@ -110,11 +128,10 @@ class OrderResource extends Resource implements HasShieldPermissions
                         Forms\Components\Select::make('payment_method_id')
                             ->relationship('paymentMethod', 'name')
                             ->reactive()
-                            ->columnSpan(1)
-                            ,
+                            ->columnSpan(1),
                         Forms\Components\Hidden::make('is_cash')
                             ->dehydrated(),
-                            Forms\Components\Textarea::make('note')
+                        Forms\Components\Textarea::make('note')
                             ->columnSpanFull()
                             ->columnSpan(2),
                     ])
@@ -130,6 +147,10 @@ class OrderResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('total_price')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('discount')
+                    ->numeric()
+                    ->suffix('%')
+                                        ,
                 Tables\Columns\TextColumn::make('paymentMethod.name')
                     ->numeric()
                     ->sortable(),
@@ -408,9 +429,14 @@ class OrderResource extends Resource implements HasShieldPermissions
         $selectedProducts = collect($get('orderProducts'))->filter(fn($item) => !empty($item['product_id']) && !empty($item['quantity']));
 
         $prices = Product::find($selectedProducts->pluck('product_id'))->pluck('price', 'id');
-        $total = $selectedProducts->reduce(function ($total, $product) use ($prices) {
+        $subtotal = $selectedProducts->reduce(function ($total, $product) use ($prices) {
             return $total + ($prices[$product['product_id']] * $product['quantity']);
         }, 0);
+
+        // Hitung diskon
+        $discountRate = (int) $get('discount') ?? 0;
+        $discountAmount = ($subtotal * $discountRate) / 100;
+        $total = $subtotal - $discountAmount;
 
         $set('total_price', $total);
     }
