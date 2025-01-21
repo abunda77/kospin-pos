@@ -90,6 +90,7 @@
 
         .receipt .footer p {
             margin: 0;
+            margin-bottom: 5px;
             height: 100px;
             line-height: 100px;
         }
