@@ -149,8 +149,17 @@ class OrderResource extends Resource implements HasShieldPermissions
                     ->sortable(),
                 Tables\Columns\TextColumn::make('discount')
                     ->numeric()
-                    ->suffix('%')
-                                        ,
+                    ->suffix('%'),
+                Tables\Columns\TextColumn::make('whatsapp')
+                    ->searchable(),
+                Tables\Columns\SelectColumn::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'processing' => 'Processing',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled'
+                    ])
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('paymentMethod.name')
                     ->numeric()
                     ->sortable(),

@@ -301,13 +301,14 @@ class Pos extends Component implements HasForms
             $nama_customer = $anggota->nama_lengkap;
         }
 
-        // Buat order baru
+        // Buat order baru dengan status 'completed'
         $order = Order::create([
             'name' => $nama_customer ?: $this->name_customer,
             'total_price' => $total_price,
             'payment_method_id' => $payment_method_id_temp,
             'anggota_id' => $this->anggota_id,
-            'discount' => $this->discount
+            'discount' => $this->discount,
+            'status' => 'completed'
         ]);
 
         // Update total pembelian anggota jika ada

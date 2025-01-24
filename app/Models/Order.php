@@ -19,8 +19,11 @@ class Order extends Model
         'total_price',
         'note',
         'payment_method_id',
-        // 'anggota_id',
-        'discount'
+        'anggota_id',
+        'discount',
+        'whatsapp',
+        'address',
+        'status'
     ];
 
     public function paymentMethod(): BelongsTo
@@ -38,6 +41,10 @@ class Order extends Model
         return $this->orderProducts()->with('product');
     }
 
+    public function anggota(): BelongsTo
+    {
+        return $this->belongsTo(Anggota::class);
+    }
 }
 
 

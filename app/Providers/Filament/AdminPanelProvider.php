@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('/')
+            ->path('login')
             ->login()
             ->colors([
                 'primary' => Color::Purple,
@@ -62,7 +62,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             // ->topNavigation()
-            
+
             ->font('poppins')
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
