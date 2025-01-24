@@ -7,6 +7,7 @@ use App\Models\OrderProduct;
 use App\Models\PaymentMethod;
 use App\Models\Anggota;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CheckoutController extends Controller
 {
@@ -99,6 +100,24 @@ class CheckoutController extends Controller
         // Kosongkan cart
         session()->forget('cart');
 
-        return redirect('/')->with('success', 'Pesanan berhasil diproses!');
+        return redirect()->route('thank-you', $order->id)->with('success', 'Pesanan berhasil diproses!');
+    }
+
+    public function thankYou($orderId)
+    {
+        $order = Order::with(['orderProducts.product', 'paymentMethod'])->findOrFail($orderId);
+        return view('thank-you', compact('order'));
+    }
+
+    public function generatePDF($orderId)
+    {
+        $order = Order::with(['orderProducts.product', 'paymentMethod'])->findOrFail($orderId);
+
+        $pdf = PDF::loadView('pdf.order', compact('order'));
+            // ->setPaper([0, 0, 210, 297], 'portrait');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'struk-' . $order->id . '.pdf');
     }
 }

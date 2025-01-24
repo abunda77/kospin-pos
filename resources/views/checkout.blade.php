@@ -1,42 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Checkout</h1>
+<div class="container mx-auto px-4 py-6 md:py-8">
+    <h1 class="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Checkout</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Form Pengiriman</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <h2 class="text-lg md:text-xl font-semibold mb-4">Form Pengiriman</h2>
 
             <!-- Pilihan Tipe Customer -->
-            <div class="mb-6">
-                <div class="flex space-x-4">
+            <div class="mb-4 md:mb-6">
+                <div class="flex space-x-3 md:space-x-4">
                     <button type="button"
                             id="btn-non-member"
-                            class="px-4 py-2 rounded customer-type-btn bg-green-500 text-white">
+                            class="px-3 md:px-4 py-2 text-sm md:text-base rounded customer-type-btn bg-green-500 text-white">
                         Non Anggota
                     </button>
                     <button type="button"
                             id="btn-member"
-                            class="px-4 py-2 rounded customer-type-btn border border-gray-300">
+                            class="px-3 md:px-4 py-2 text-sm md:text-base rounded customer-type-btn border border-gray-300">
                         Anggota
                     </button>
                 </div>
             </div>
 
             <!-- Form Cek NIK Anggota -->
-            <div id="member-check-form" style="display: none;" class="mb-6">
+            <div id="member-check-form" style="display: none;" class="mb-4 md:mb-6">
                 <div class="flex space-x-2">
                     <input type="text"
                            id="check-nik"
-                           class="flex-1 border rounded px-3 py-2"
-                           placeholder="Masukkan NIK Anggota">
+                           class="flex-1 border rounded px-3 py-2 text-sm md:text-base"
+                           placeholder="Masukkan NIK/No.WA">
                     <button type="button"
                             onclick="checkMember()"
-                            class="bg-blue-500 text-white px-4 py-2 rounded">
-                        Cek NIK
+                            class="bg-blue-500 text-white px-3 md:px-4 py-2 rounded text-sm md:text-base">
+                        Cek NIK / No.WA
                     </button>
                 </div>
+                <div id="notification" class="mt-3 p-3 rounded-lg text-sm md:text-base hidden"></div>
             </div>
 
             <!-- Form Non Anggota -->
@@ -46,18 +47,18 @@
                 <input type="hidden" name="is_member" value="0">
 
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">Nama Lengkap</label>
-                    <input type="text" name="name" class="w-full border rounded px-3 py-2" required>
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">Nama Lengkap</label>
+                    <input type="text" name="name" class="w-full border rounded px-3 py-2 text-sm md:text-base" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">No. WhatsApp</label>
-                    <input type="text" name="whatsapp" class="w-full border rounded px-3 py-2" required>
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">No. WhatsApp</label>
+                    <input type="text" name="whatsapp" class="w-full border rounded px-3 py-2 text-sm md:text-base" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">Alamat Lengkap</label>
-                    <textarea name="address" class="w-full border rounded px-3 py-2" rows="3" required></textarea>
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">Alamat Lengkap</label>
+                    <textarea name="address" class="w-full border rounded px-3 py-2 text-sm md:text-base" rows="3" required></textarea>
                 </div>
-                <button type="submit" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                <button type="submit" class="w-full bg-green-500 text-white py-2 md:py-3 px-4 rounded hover:bg-green-600 text-sm md:text-base">
                     Proses Pesanan
                 </button>
             </form>
@@ -70,46 +71,46 @@
                 <input type="hidden" name="member_id" id="member_id">
 
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">NIK</label>
-                    <input type="text" name="nik" id="member-nik" class="w-full border rounded px-3 py-2" readonly>
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">NIK / No. Whatsapp</label>
+                    <input type="text" name="nik" id="member-nik" class="w-full border rounded px-3 py-2 text-sm md:text-base" readonly>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">Nama Lengkap</label>
-                    <input type="text" name="name" id="member-name" class="w-full border rounded px-3 py-2">
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">Nama Lengkap</label>
+                    <input type="text" name="name" id="member-name" class="w-full border rounded px-3 py-2 text-sm md:text-base">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">No. WhatsApp</label>
-                    <input type="text" name="whatsapp" class="w-full border rounded px-3 py-2" required>
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">No. WhatsApp</label>
+                    <input type="text" name="whatsapp" class="w-full border rounded px-3 py-2 text-sm md:text-base" required>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">Alamat Lengkap</label>
-                    <textarea name="address" class="w-full border rounded px-3 py-2" rows="3" required></textarea>
+                    <label class="block text-gray-700 text-sm md:text-base mb-2">Alamat Lengkap</label>
+                    <textarea name="address" class="w-full border rounded px-3 py-2 text-sm md:text-base" rows="3" required></textarea>
                 </div>
-                <button type="submit" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                <button type="submit" class="w-full bg-green-500 text-white py-2 md:py-3 px-4 rounded hover:bg-green-600 text-sm md:text-base">
                     Proses Pesanan
                 </button>
             </form>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Ringkasan Pesanan</h2>
+        <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
+            <h2 class="text-lg md:text-xl font-semibold mb-4">Ringkasan Pesanan</h2>
 
             <!-- Metode Pembayaran -->
             <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h3 class="font-semibold mb-2">Metode Pembayaran</h3>
-                <div class="flex items-center">
+                <h3 class="font-semibold mb-2 text-sm md:text-base">Metode Pembayaran</h3>
+                <div class="flex items-center text-sm md:text-base">
                     <span>{{ $paymentMethod->name }}</span>
                 </div>
             </div>
 
             <!-- Daftar Produk -->
             @foreach($cart as $item)
-            <div class="flex justify-between py-2 border-b">
+            <div class="flex justify-between py-2 border-b text-sm md:text-base">
                 <span>{{ $item['name'] }} ({{ $item['quantity'] }}x)</span>
                 <span>Rp {{ number_format($item['unit_price'] * $item['quantity'], 0, ',', '.') }}</span>
             </div>
             @endforeach
-            <div class="flex justify-between py-4 font-bold">
+            <div class="flex justify-between py-4 font-bold text-sm md:text-base">
                 <span>Total</span>
                 <span>Rp {{ number_format($total, 0, ',', '.') }}</span>
             </div>
@@ -168,7 +169,7 @@ function setCustomerType(type) {
 function checkMember() {
     const nik = document.getElementById('check-nik').value;
     if (!nik) {
-        alert('Silakan masukkan NIK terlebih dahulu');
+        showNotification('Silakan masukkan NIK terlebih dahulu', 'danger');
         return;
     }
 
@@ -186,21 +187,38 @@ function checkMember() {
                 document.getElementById('member_id').value = data.member.id;
                 document.getElementById('member-name').value = data.member.nama_lengkap;
                 document.getElementById('member-name').readOnly = true;
+                showNotification('Data anggota ditemukan!', 'success');
             } else {
                 document.getElementById('member_id').value = '';
                 document.getElementById('member-name').value = '';
                 document.getElementById('member-name').readOnly = false;
-                alert('NIK tidak ditemukan. Silakan lengkapi data Anda.');
+                showNotification('NIK tidak ditemukan. Silakan lengkapi data Anda.', 'danger');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat memeriksa NIK');
+            showNotification('Terjadi kesalahan saat memeriksa NIK', 'danger');
         })
         .finally(() => {
             checkButton.disabled = false;
             checkButton.innerHTML = originalText;
         });
+}
+
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+
+    if (type === 'success') {
+        notification.classList.add('bg-green-100', 'text-green-800');
+    } else if (type === 'danger') {
+        notification.classList.add('bg-red-100', 'text-red-800');
+    }
+
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 5000);
 }
 </script>
 @endpush
@@ -217,6 +235,16 @@ function checkMember() {
 /* Tambahan style untuk form yang tersembunyi */
 .hidden {
     display: none !important;
+}
+
+/* Tambahkan animasi untuk notifikasi */
+#notification {
+    transition: all 0.3s ease;
+}
+
+#notification.hidden {
+    opacity: 0;
+    transform: translateY(-10px);
 }
 </style>
 @endsection

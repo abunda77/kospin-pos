@@ -22,6 +22,9 @@ Route::get('/struk/{orderId}', [StrukController::class, 'show'])
     ->name('struk');
 
 Route::get('/', [CatalogController::class, 'index'])
+    ->name('home');
+
+Route::get('/catalog', [CatalogController::class, 'index'])
     ->name('catalog');
 
 Route::get('/catalog/{category}', [CatalogController::class, 'show']);
@@ -40,3 +43,5 @@ Route::post('/checkout/process', [CheckoutController::class, 'process'])
     ->name('checkout.process');
 Route::delete('/cart/{product}', [CartController::class, 'delete'])->name('cart.delete');
 Route::get('/check-member/{nik}', [CheckoutController::class, 'checkMember'])->name('checkout.check-member');
+Route::get('/thank-you/{order}', [CheckoutController::class, 'thankYou'])->name('thank-you');
+Route::get('/order/{order}/pdf', [CheckoutController::class, 'generatePDF'])->name('order.pdf');

@@ -15,7 +15,9 @@
                 <p class="text-gray-600 mb-2">Stok : {{ $product->stock }} </p>
                 <form action="{{ route('cart.add', $product->id) }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                    <button type="submit"
+                        class="w-full {{ $product->stock > 0 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed' }} text-white py-2 px-4 rounded"
+                        {{ $product->stock == 0 ? 'disabled' : '' }}>
                         Tambah ke Keranjang
                     </button>
                 </form>
