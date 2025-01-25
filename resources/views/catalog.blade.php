@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Katalog Produk</h1>
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Katalog Produk</h1>
+        <a href="{{ route('catalog.download-pdf') }}" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+            Download Catalog PDF
+        </a>
+    </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         @foreach($products as $product)
