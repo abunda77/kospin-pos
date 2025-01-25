@@ -1,31 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container px-4 py-8 mx-auto">
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Katalog Produk</h1>
-        <a href="{{ route('catalog.download-pdf') }}" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+        <h1 class="text-2xl font-bold sm:text-3xl">Katalog Produk</h1>
+        <a href="{{ route('catalog.download-pdf') }}" class="px-4 py-2 text-sm text-white bg-green-500 rounded hover:bg-green-600 sm:text-base">
             Download Catalog PDF
         </a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         @foreach($products as $product)
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-48 object-cover">
+        <div class="overflow-hidden bg-white rounded-lg shadow-md">
+            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="object-cover w-full h-48">
             <div class="p-4">
-                <h2 class="text-xl font-semibold mb-2">{{ $product->name }}</h2>
-                <p class="text-gray-600 mb-2">{{ $product->category->name }}</p>
-                <p class="text-gray-800 font-bold mb-4">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-                <p class="text-gray-600 mb-2">Stok : {{ $product->stock }} </p>
-                <form action="{{ route('cart.add', $product->id) }}" method="POST">
-                    @csrf
-                    <button type="submit"
-                        class="w-full {{ $product->stock > 0 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed' }} text-white py-2 px-4 rounded"
-                        {{ $product->stock == 0 ? 'disabled' : '' }}>
-                        Tambah ke Keranjang
-                    </button>
-                </form>
+                <h2 class="mb-2 text-xl font-semibold">{{ $product->name }}</h2>
+                <p class="mb-2 text-gray-600">{{ $product->category->name }}</p>
+                <p class="mb-4 font-bold text-gray-800">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                <p class="mb-2 text-gray-600">Stok : {{ $product->stock }} </p>
+                <livewire:add-to-cart :product="$product" :wire:key="$product->id" />
             </div>
         </div>
         @endforeach
