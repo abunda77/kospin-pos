@@ -10,24 +10,8 @@ class CartController extends Controller
 {
     public function index()
     {
-        $cart = session()->get('cart', []);
-        $total = 0;
-
-        foreach($cart as $id => $item) {
-            if (!isset($item['unit_price'])) {
-                // If unit_price is missing, remove the item from cart
-                unset($cart[$id]);
-                continue;
-            }
-            $total += $item['unit_price'] * $item['quantity'];
-        }
-
-        // Update the cart session after cleaning invalid items
-        session()->put('cart', $cart);
-
         $paymentMethods = PaymentMethod::where('is_cash', true)->get();
-
-        return view('cart', compact('cart', 'total', 'paymentMethods'));
+        return view('cart', compact('paymentMethods'));
     }
 
     public function add(Product $product)
