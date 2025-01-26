@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\BannerIklan;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -15,7 +16,12 @@ class CatalogController extends Controller
             ->with('category')
             ->paginate(12);
 
-        return view('catalog', compact('products'));
+        $activeBanners = BannerIklan::where('status', 'aktif')
+            ->whereDate('tanggal_mulai', '<=', now())
+            ->whereDate('tanggal_selesai', '>=', now())
+            ->get();
+
+        return view('catalog', compact('products', 'activeBanners'));
     }
 
     public function show(Category $category)
@@ -35,7 +41,7 @@ class CatalogController extends Controller
             ->get();
 
         $pdf = PDF::loadView('pdf.catalog', compact('products'));
-        
+
         return $pdf->download('catalog.pdf');
     }
 }

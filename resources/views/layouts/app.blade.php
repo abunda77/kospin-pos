@@ -48,9 +48,26 @@
         @yield('content')
     </div>
 
-    <footer class="py-6 mt-12 bg-white">
-        <div class="container px-4 mx-auto text-center text-gray-600">
-            <p>&copy; {{ date('Y') }} Sinara Artha. All rights reserved.</p>
+    <footer class="py-8 mt-12 bg-white border-t">
+        <div class="container px-4 mx-auto">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div class="text-center md:text-left">
+                    <h3 class="mb-3 text-lg font-semibold text-gray-800">Alamat Kantor</h3>
+                    <p class="text-gray-600">
+                        Easten Park Residence Blok B7 No. 7,<br>
+                        Sukolilo, Surabaya 60111
+                    </p>
+                </div>
+                <div class="text-center md:text-right">
+                    <h3 class="mb-3 text-lg font-semibold text-gray-800">Hubungi Kami</h3>
+                    <p class="text-gray-600">
+                        Email: <a href="mailto:cs@kospinsinaraartha.co.id" class="text-green-600 hover:text-green-700">cs@kospinsinaraartha.co.id</a>
+                    </p>
+                </div>
+            </div>
+            <div class="pt-6 mt-6 text-center border-t border-gray-200">
+                <p class="text-gray-600">&copy; {{ date('Y') }} Sinara Artha. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
