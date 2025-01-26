@@ -27,14 +27,11 @@
 <div class="container px-4 py-8 mx-auto">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold sm:text-3xl">Katalog Produk</h1>
-        <a href="{{ route('catalog.download-pdf') }}" class="px-4 py-2 text-sm text-white bg-green-500 rounded-lg transition-colors duration-300 hover:bg-green-600 sm:text-base hover:shadow-lg">
-            Download Catalog PDF
-        </a>
     </div>
 
     <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         @foreach($products as $product)
-        <div class="overflow-hidden bg-white rounded-xl shadow-md transition-all duration-300 transform group hover:shadow-xl hover:-translate-y-1">
+        <div class="overflow-hidden bg-gray-200 rounded-xl shadow-md transition-all duration-300 transform group hover:shadow-xl hover:-translate-y-1">
             <div class="overflow-hidden relative">
                 <img src="{{ $product->image_url }}"
                      alt="{{ $product->name }}"

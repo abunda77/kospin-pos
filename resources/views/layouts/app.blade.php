@@ -16,7 +16,7 @@
     <!-- Styles -->
     @livewireStyles
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 flex flex-col min-h-screen">
     <nav class="bg-white shadow-lg">
         <div class="container px-4 mx-auto">
             <div class="flex justify-between items-center h-16">
@@ -26,7 +26,10 @@
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('catalog') }}" class="text-gray-700 hover:text-gray-900">Katalog</a>
+                    <a href="{{ route('catalog') }}" class="text-gray-700 hover:text-gray-900">Beranda</a>
+                    <a href="{{ route('catalog.download-pdf') }}" class="px-3 py-1 text-sm text-white bg-green-500 rounded-lg transition-colors duration-300 hover:bg-green-600 text-center">
+                        Download Katalog PDF
+                    </a>
                     <a href="{{ route('cart') }}" class="inline-flex relative items-center text-gray-700 hover:text-gray-900">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -38,35 +41,57 @@
         </div>
     </nav>
 
-    <div class="container px-4 mx-auto">
-        @if(session('success'))
-            <div class="relative px-4 py-3 mb-4 text-green-700 bg-green-100 rounded border border-green-400" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @yield('content')
-    </div>
-
-    <footer class="py-8 mt-12 bg-white border-t">
+    <main class="flex-grow">
         <div class="container px-4 mx-auto">
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            @if(session('success'))
+                <div class="relative px-4 py-3 mb-4 text-green-700 bg-green-100 rounded border border-green-400" role="alert">
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @yield('content')
+        </div>
+    </main>
+
+    <footer class="py-8 bg-gray-800 text-white shadow-lg mt-auto">
+        <div class="container px-4 mx-auto">
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <div class="text-center md:text-left">
-                    <h3 class="mb-3 text-lg font-semibold text-gray-800">Alamat Kantor</h3>
-                    <p class="text-gray-600">
+                    <h3 class="mb-4 text-lg font-semibold text-green-400">Tentang Kami</h3>
+                    <p class="text-gray-300">
+                        Koperasi Simpan Pinjam yang terpercaya melayani kebutuhan anggota sejak tahun 2010.
+                    </p>
+                </div>
+
+                <div class="text-center md:text-left">
+                    <h3 class="mb-4 text-lg font-semibold text-green-400">Alamat Kantor</h3>
+                    <p class="text-gray-300">
                         Easten Park Residence Blok B7 No. 7,<br>
                         Sukolilo, Surabaya 60111
                     </p>
                 </div>
-                <div class="text-center md:text-right">
-                    <h3 class="mb-3 text-lg font-semibold text-gray-800">Hubungi Kami</h3>
-                    <p class="text-gray-600">
-                        Email: <a href="mailto:cs@kospinsinaraartha.co.id" class="text-green-600 hover:text-green-700">cs@kospinsinaraartha.co.id</a>
+
+                <div class="text-center md:text-left">
+                    <h3 class="mb-4 text-lg font-semibold text-green-400">Hubungi Kami</h3>
+                    <p class="text-gray-300">
+                        Email: <a href="mailto:cs@kospinsinaraartha.co.id" class="text-green-400 hover:text-green-300">cs@kospinsinaraartha.co.id</a><br>
+                        Telepon: (+62) 87778715788<br>
+                        WhatsApp: +62 87778715788
+                    </p>
+                </div>
+
+                <div class="text-center md:text-left">
+                    <h3 class="mb-4 text-lg font-semibold text-green-400">Jam Operasional</h3>
+                    <p class="text-gray-300">
+                        Senin - Jumat: 08.00 - 17.00<br>
+                        Sabtu: 08.00 - 52.00<br>
+                        Minggu / Hari Libur: Tutup
                     </p>
                 </div>
             </div>
-            <div class="pt-6 mt-6 text-center border-t border-gray-200">
-                <p class="text-gray-600">&copy; {{ date('Y') }} Sinara Artha. All rights reserved.</p>
+
+            <div class="pt-6 mt-6 text-center border-t border-gray-700">
+                <p class="text-gray-400">&copy; {{ date('Y') }} Sinara Artha. All rights reserved.</p>
             </div>
         </div>
     </footer>

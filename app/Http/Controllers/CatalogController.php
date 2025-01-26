@@ -19,6 +19,7 @@ class CatalogController extends Controller
         $activeBanners = BannerIklan::where('status', 'aktif')
             ->whereDate('tanggal_mulai', '<=', now())
             ->whereDate('tanggal_selesai', '>=', now())
+            ->inRandomOrder()
             ->get();
 
         return view('catalog', compact('products', 'activeBanners'));
