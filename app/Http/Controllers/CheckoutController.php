@@ -118,6 +118,6 @@ class CheckoutController extends Controller
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
-        }, 'struk-' . $order->id . '.pdf');
+        }, 'struk-' . $order->no_order . '.pdf');
     }
 }

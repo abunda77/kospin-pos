@@ -113,6 +113,7 @@
         </div>
         <div class="content">
             <p>=============================</p>
+            <p>No. Order: {{ $order->no_order }}</p>
             <p>Tanggal :{{ date('d-m-Y, H:i') }}</p>
             <table>
                 <thead>
@@ -160,11 +161,18 @@
                     </tr>
                 </tfoot>
             </table>
-            <div class="footer">
-                <p style="font-weight: bold;">Terima Kasih!
-
-            </div>
-
+            <p>=============================</p>
+            <p>Metode Pembayaran: {{ $payment_method->name }}</p>
+            @if($payment_method->account_number)
+            <p>No. Rekening: {{ $payment_method->account_number }}</p>
+            @endif
+            @if($payment_method->account_name)
+            <p>Atas Nama: {{ $payment_method->account_name }}</p>
+            @endif
+            <p>=============================</p>
+        </div>
+        <div class="footer">
+            <p style="font-weight: bold;">Terima Kasih!</p>
         </div>
     </div>
 

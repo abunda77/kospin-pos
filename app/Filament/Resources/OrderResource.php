@@ -142,7 +142,7 @@ class OrderResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                Tables\Columns\TextColumn::make('no_order')
                     ->searchable()
                     ->sortable()
                     ->label('No. Order'),

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order #{{ $order->id }}</title>
+    <title>Order #{{ $order->no_order }}</title>
     <style>
         body { font-family: Arial, sans-serif; }
         .container { padding: 20px; }
@@ -23,7 +23,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Detail Pesanan #{{ $order->id }}</h1>
+            <h1>Detail Pesanan #{{ $order->no_order }}</h1>
             <p>Tanggal: {{ $order->created_at->format('d M Y H:i') }}</p>
         </div>
 
