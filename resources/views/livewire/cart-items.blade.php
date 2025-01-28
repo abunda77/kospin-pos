@@ -3,62 +3,67 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-8">
             <!-- Daftar Produk -->
             <div class="p-4 bg-white rounded-lg shadow-md md:col-span-2 md:p-6">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b">
-                            <th class="py-2 text-sm text-left md:text-base">Produk</th>
-                            <th class="py-2 text-sm text-center md:text-base">Jumlah</th>
-                            <th class="py-2 text-sm text-right md:text-base">Harga</th>
-                            <th class="py-2 text-sm text-right md:text-base">Subtotal</th>
-                            <th class="py-2 text-sm text-right md:text-base">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($cart as $id => $item)
-                        <tr class="border-b">
-                            <td class="py-2 md:py-4">
-                                <div class="flex items-center">
-                                    <img src="{{ $item['image'] }}" class="object-cover w-12 h-12 rounded md:w-16 md:h-16">
-                                    <span class="ml-2 text-sm md:ml-4 md:text-base">{{ $item['name'] }}</span>
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                <div class="flex justify-center items-center space-x-2">
-                                    <button wire:click="decrementQuantity({{ $id }})"
-                                            class="px-2 py-1 text-gray-600 hover:text-gray-800">
-                                        -
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Produk</th>
+                                <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">Jumlah</th>
+                                <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">Harga</th>
+                                <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">Subtotal</th>
+                                <th class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($cart as $id => $item)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 w-10 h-10">
+                                            <img class="w-10 h-10 rounded-full" src="{{ $item['image'] }}" alt="{{ $item['name'] }}">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ $item['name'] }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <div class="flex justify-center items-center space-x-2">
+                                        <button wire:click="decrementQuantity({{ $id }})" class="text-gray-500 hover:text-gray-700">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                            </svg>
+                                        </button>
+                                        <span class="text-sm text-gray-900">{{ $item['quantity'] }}</span>
+                                        <button wire:click="incrementQuantity({{ $id }})" class="text-gray-500 hover:text-gray-700">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-500 whitespace-nowrap">
+                                    Rp {{ number_format($item['unit_price'], 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-500 whitespace-nowrap">
+                                    Rp {{ number_format($item['quantity'] * $item['unit_price'], 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    <button wire:click="removeItem({{ $id }})" class="text-red-600 hover:text-red-900">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
                                     </button>
-                                    <span class="text-sm md:text-base">{{ $item['quantity'] }}</span>
-                                    <button wire:click="incrementQuantity({{ $id }})"
-                                            class="px-2 py-1 text-gray-600 hover:text-gray-800">
-                                        +
-                                    </button>
-                                </div>
-                            </td>
-                            <td class="text-sm text-right md:text-base">Rp {{ number_format($item['unit_price'], 0, ',', '.') }}</td>
-                            <td class="text-sm text-right md:text-base">Rp {{ number_format($item['unit_price'] * $item['quantity'], 0, ',', '.') }}</td>
-                            <td class="text-right">
-                                <button wire:click="removeItem({{ $id }})" class="text-red-500 hover:text-red-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="py-2 text-sm font-bold text-right md:py-4 md:text-base">Total:</td>
-                            <td class="text-sm font-bold text-right md:text-base">Rp {{ number_format($total, 0, ',', '.') }}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Metode Pembayaran -->
-            <div class="p-4 bg-white rounded-lg shadow-md md:p-6">
+            {{-- <div class="p-4 bg-white rounded-lg shadow-md md:p-6">
                 <h2 class="mb-4 text-lg font-semibold md:text-xl">Metode Pembayaran</h2>
                 <form action="{{ route('checkout') }}" method="GET">
                     <div class="space-y-3 md:space-y-4">
@@ -80,6 +85,26 @@
                         </button>
                     </div>
                 </form>
+            </div> --}}
+        </div>
+
+        <div class="mt-8">
+            <div class="p-6 bg-white rounded-lg shadow-sm">
+                <div class="flex flex-col space-y-4">
+                    <!-- Subtotal -->
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="font-medium">Rp {{ number_format($this->getSubtotal(), 0, ',', '.') }}</span>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <span class="text-lg font-semibold">Total</span>
+                        <span class="text-lg font-bold text-blue-600">
+                            Rp {{ number_format($total, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     @else

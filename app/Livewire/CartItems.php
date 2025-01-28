@@ -10,6 +10,12 @@ class CartItems extends Component
     public $cart = [];
     public $total = 0;
     public $paymentMethods;
+    public $selectedPaymentMethod = '';
+
+    protected $listeners = [
+        'voucherApplied' => 'updateTotalWithDiscount',
+        'voucherRemoved' => 'resetTotal'
+    ];
 
     public function mount()
     {
@@ -26,15 +32,31 @@ class CartItems extends Component
 
     private function calculateTotal()
     {
-        $this->total = 0;
-        foreach($this->cart as $item) {
-            $this->total += $item['unit_price'] * $item['quantity'];
-        }
+        $this->total = collect($this->cart)->sum(function ($item) {
+            return $item['quantity'] * $item['unit_price'];
+        });
+    }
+
+    public function updateTotalWithDiscount($discount)
+    {
+        $this->total = $this->getSubtotal() - $discount;
+    }
+
+    public function resetTotal()
+    {
+        $this->calculateTotal();
+    }
+
+    public function getSubtotal()
+    {
+        return collect($this->cart)->sum(function ($item) {
+            return $item['quantity'] * $item['unit_price'];
+        });
     }
 
     public function incrementQuantity($productId)
     {
-        if(isset($this->cart[$productId])) {
+        if (isset($this->cart[$productId])) {
             $this->cart[$productId]['quantity']++;
             session()->put('cart', $this->cart);
             $this->calculateTotal();
@@ -44,7 +66,7 @@ class CartItems extends Component
 
     public function decrementQuantity($productId)
     {
-        if(isset($this->cart[$productId]) && $this->cart[$productId]['quantity'] > 1) {
+        if (isset($this->cart[$productId]) && $this->cart[$productId]['quantity'] > 1) {
             $this->cart[$productId]['quantity']--;
             session()->put('cart', $this->cart);
             $this->calculateTotal();
@@ -54,7 +76,7 @@ class CartItems extends Component
 
     public function removeItem($productId)
     {
-        if(isset($this->cart[$productId])) {
+        if (isset($this->cart[$productId])) {
             unset($this->cart[$productId]);
             session()->put('cart', $this->cart);
             $this->calculateTotal();

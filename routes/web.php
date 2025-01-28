@@ -14,7 +14,7 @@ use App\Http\Controllers\CheckoutController;
 
 // ->name('home');
 
-Route::get('/download-template', function() {
+Route::get('/download-template', function () {
     return Excel::download(new TemplateExport, 'template.xlsx');
 })->name('download-template');
 
@@ -45,4 +45,6 @@ Route::post('/checkout/process', [CheckoutController::class, 'process'])
 Route::delete('/cart/{product}', [CartController::class, 'delete'])->name('cart.delete');
 Route::get('/check-member/{nik}', [CheckoutController::class, 'checkMember'])->name('checkout.check-member');
 Route::get('/thank-you/{order}', [CheckoutController::class, 'thankYou'])->name('thank-you');
-Route::get('/order/{order}/pdf', [CheckoutController::class, 'generatePDF'])->name('order.pdf');
+
+// Order PDF route
+Route::get('/order/{order}/pdf', [CheckoutController::class, 'generatePdf'])->name('order.pdf');

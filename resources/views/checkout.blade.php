@@ -111,8 +111,18 @@
             </div>
             @endforeach
             <div class="flex justify-between py-4 font-bold text-sm md:text-base">
+                <span>Subtotal</span>
+                <span>Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+            </div>
+            @if(session()->has('voucher'))
+            <div class="flex justify-between py-2 text-sm md:text-base">
+                <span>Voucher ({{ session('voucher')['kode_voucher'] }})</span>
+                <span class="text-green-600">- Rp {{ number_format(session('voucher')['discount'], 0, ',', '.') }}</span>
+            </div>
+            @endif
+            <div class="flex justify-between py-4 font-bold text-lg md:text-base">
                 <span>Total</span>
-                <span>Rp {{ number_format($total, 0, ',', '.') }}</span>
+                <span class="text-blue-600">Rp {{ number_format($total, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>

@@ -30,5 +30,9 @@ class OrderProduct extends Model
         return $this->belongsTo(Product::class);
     }
 
-    
+    // Accessors
+    public function getSubtotalAttribute()
+    {
+        return $this->quantity * $this->unit_price;
+    }
 }

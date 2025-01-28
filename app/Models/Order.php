@@ -18,13 +18,13 @@ class Order extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             // Generate UUID if not set
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
-            
+
             // Generate sequential no_order
             if (empty($model->no_order)) {
                 $lastOrder = static::orderBy('no_order', 'desc')->first();
@@ -35,19 +35,15 @@ class Order extends Model
     }
 
     protected $fillable = [
-        'id',
-        'no_order',
-        'name',
-        'email',
-        'phone',
-        'birthday',
-        'total_price',
-        'note',
         'payment_method_id',
-        'anggota_id',
-        'discount',
+        'name',
         'whatsapp',
         'address',
+        'total_price',
+        'subtotal_amount',
+        'discount_amount',
+        'total_amount',
+        'voucher_id',
         'status'
     ];
 
@@ -69,5 +65,10 @@ class Order extends Model
     public function anggota(): BelongsTo
     {
         return $this->belongsTo(Anggota::class);
+    }
+
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(VoucherDiskon::class, 'voucher_id');
     }
 }
