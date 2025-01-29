@@ -16,13 +16,17 @@ class CatalogController extends Controller
             ->with('category')
             ->paginate(12);
 
+        $categories = Category::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
         $activeBanners = BannerIklan::where('status', 'aktif')
             ->whereDate('tanggal_mulai', '<=', now())
             ->whereDate('tanggal_selesai', '>=', now())
             ->inRandomOrder()
             ->get();
 
-        return view('catalog', compact('products', 'activeBanners'));
+        return view('catalog', compact('products', 'categories', 'activeBanners'));
     }
 
     public function show(Category $category)
@@ -32,7 +36,17 @@ class CatalogController extends Controller
             ->with('category')
             ->paginate(12);
 
-        return view('catalog', compact('products'));
+        $categories = Category::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $activeBanners = BannerIklan::where('status', 'aktif')
+            ->whereDate('tanggal_mulai', '<=', now())
+            ->whereDate('tanggal_selesai', '>=', now())
+            ->inRandomOrder()
+            ->get();
+
+        return view('catalog', compact('products', 'categories', 'activeBanners', 'category'));
     }
 
     public function downloadPdf()

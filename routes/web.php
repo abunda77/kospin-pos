@@ -28,7 +28,7 @@ Route::get('/catalog', [CatalogController::class, 'index'])
     ->name('catalog');
 
 Route::get('/catalog/download-pdf', [CatalogController::class, 'downloadPdf'])->name('catalog.download-pdf');
-Route::get('/catalog/{category}', [CatalogController::class, 'show']);
+Route::get('/catalog/{category}', [CatalogController::class, 'show'])->name('catalog.show');
 
 
 
