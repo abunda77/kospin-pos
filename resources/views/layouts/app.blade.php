@@ -16,7 +16,7 @@
     <!-- Styles -->
     @livewireStyles
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen bg-gray-100">
     <nav class="bg-white shadow-lg">
         <div class="container px-4 mx-auto">
             <div class="flex justify-between items-center h-16">
@@ -27,7 +27,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('catalog') }}" class="text-gray-700 hover:text-gray-900">Beranda</a>
-                    <a href="{{ route('catalog.download-pdf') }}" class="px-3 py-1 text-sm text-white bg-green-500 rounded-lg transition-colors duration-300 hover:bg-green-600 text-center">
+                    <a href="{{ route('catalog.download-pdf') }}" class="px-3 py-1 text-sm text-center text-white bg-green-500 rounded-lg transition-colors duration-300 hover:bg-green-600">
                         Download Katalog PDF
                     </a>
                     <a href="{{ route('cart') }}" class="inline-flex relative items-center text-gray-700 hover:text-gray-900">
@@ -53,13 +53,13 @@
         </div>
     </main>
 
-    <footer class="py-8 bg-gray-800 text-white shadow-lg mt-auto">
+    <footer class="py-8 mt-auto text-white bg-gray-800 shadow-lg">
         <div class="container px-4 mx-auto">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Tentang Kami</h3>
                     <p class="text-gray-300">
-                        Koperasi Simpan Pinjam yang terpercaya melayani kebutuhan anggota sejak tahun 2010.
+                        Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2010.
                     </p>
                 </div>
 
