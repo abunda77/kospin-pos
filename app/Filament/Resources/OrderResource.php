@@ -32,6 +32,8 @@ use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
 
 
+
+
 class OrderResource extends Resource implements HasShieldPermissions
 {
     public static function getPermissionPrefixes(): array
@@ -310,7 +312,8 @@ class OrderResource extends Resource implements HasShieldPermissions
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('struk', [
                             'order' => $order,
                             'order_items' => $order_items,
-                            'setting' => $setting
+                            'setting' => $setting,
+                            'payment_method' => $order->paymentMethod
                         ])->setPaper([0, 0, 226.77, 700], 'portrait');
 
                         return response()->streamDownload(function () use ($pdf) {

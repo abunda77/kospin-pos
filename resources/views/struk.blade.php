@@ -162,12 +162,14 @@
                 </tfoot>
             </table>
             <p>=============================</p>
+            @if($payment_method)
             <p>Metode Pembayaran: {{ $payment_method->name }}</p>
             @if($payment_method->account_number)
             <p>No. Rekening: {{ $payment_method->account_number }}</p>
             @endif
             @if($payment_method->account_name)
             <p>Atas Nama: {{ $payment_method->account_name }}</p>
+            @endif
             @endif
             <p>=============================</p>
         </div>
