@@ -10,7 +10,7 @@
                 </svg>
                 <h1 class="mt-4 text-2xl font-bold text-gray-900">Terima Kasih!</h1>
                 <p class="mt-2 text-gray-600">Pesanan Anda telah berhasil diproses.</p>
-                <p class="text-sm text-gray-500">Nomor Order: #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</p>
+                <p class="text-sm text-gray-500">Nomor Order: #{{ str_pad($order->no_order, 5, '0', STR_PAD_LEFT) }}</p>
             </div>
 
             <div class="mt-8">

@@ -22,7 +22,7 @@
             <div class="flex justify-between items-center h-16">
                 <div>
                     <a href="{{ route('catalog') }}">
-                        <img src="{{ asset('images/logo_sinaraartha.png') }}" alt="Logo Sinar Aartha" class="h-12">
+                        <img src="{{ asset('images/logo_sinaraartha.png') }}" alt="Logo Sinar Artha" class="h-12">
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">

@@ -79,7 +79,8 @@
 <body>
     <div class="header">
         <h1>INVOICE</h1>
-        <p>No: #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</p>
+        <img src="{{ asset('images/logo_sinaraartha.png') }}" alt="Pembelian Barang" style="width: 150px; height: auto;">
+        <p>No: #{{ str_pad($order->no_order, 5, '0', STR_PAD_LEFT) }}</p>
         <p>{{ $order->created_at->format('d/m/Y H:i') }}</p>
     </div>
 
