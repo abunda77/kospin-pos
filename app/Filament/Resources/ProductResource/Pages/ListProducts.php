@@ -13,7 +13,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\ProductResource;
-
+use Illuminate\Support\Facades\Session;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ListProducts extends ListRecords
 {
@@ -22,6 +23,22 @@ class ListProducts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('printEmptyStock')
+                ->label('Produk Kosong')
+                ->icon('heroicon-s-printer')
+                ->color('warning')
+                ->action(function () {
+                    $products = Product::where('stock', 0)->get();
+                    
+                    $pdf = Pdf::loadView('pdf.empty-stock-products', [
+                        'products' => $products,
+                        'date' => now()->format('d/m/Y H:i:s')
+                    ]);
+    
+                    return response()->streamDownload(function () use ($pdf) {
+                        echo $pdf->output();
+                    }, 'empty-stock-products.pdf');
+                }),
             Action::make('importProducts')
                     ->label('Import Product')
                     ->icon('heroicon-s-arrow-down-tray')
@@ -39,7 +56,7 @@ class ListProducts extends ListRecords
                                 ->title('Product imported')
                                 ->success()
                                 ->send();
-                        } catch(\Exeption $e) {
+                        } catch(\Exception $e) {
                             dd($e);
                             Notification::make()
                                     ->title('Product failed to import')
@@ -65,8 +82,8 @@ class ListProducts extends ListRecords
     }
 
     public function getTabs(): array
-{
-    return [
+    {
+        return [
         'all' => Tab::make(),
         'Stock Banyak' => Tab::make()
         ->modifyQueryUsing(fn (Builder $query) => $query->where('stock', '>', 10))
@@ -80,6 +97,6 @@ class ListProducts extends ListRecords
             ->modifyQueryUsing(fn (Builder $query) => $query->where('stock', '=', 0))
             ->badge(Product::query()->where('stock', '<=', 0)->count())
             ->badgeColor('danger'),
-    ];
-}
+        ];
+    }
 }
