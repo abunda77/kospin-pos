@@ -5,6 +5,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Invoice #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</title>
     <style>
         /* Aturan @page untuk mengatur ukuran kertas menjadi A6 */
@@ -130,7 +131,11 @@
     <div class="page-container">
         <div class="header">
             <h1>INVOICE</h1>
-            <img src="{{ asset('images/logo_sinaraartha.png') }}" alt="Pembelian Barang">
+            @if(file_exists(public_path('images/logo_sinaraartha.png')))
+                <img src="{{ asset('images/logo_sinaraartha.png') }}" alt="Pembelian Barang">
+            @else
+                <div style="height: 80px;"></div>
+            @endif
             <p>No: <strong>#{{ str_pad($order->no_order, 5, '0', STR_PAD_LEFT) }}</strong></p>
             <p>{{ $order->created_at->format('d/m/Y H:i') }}</p>
         </div>
@@ -159,7 +164,7 @@
                 <strong>Status:</strong> {{ ucfirst($order->status) }}
             </div>
 
-            @if($order->paymentMethod->name === "Transfer")
+            @if($order->paymentMethod && $order->paymentMethod->name === "Transfer")
             <div style="margin-top: 5px; padding-top: 5px; border-top: 1px solid #e5e7eb;">
                 <div class="info-item">
                     <strong>Bank:</strong> BCA
@@ -185,14 +190,18 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($order->orderProducts as $item)
+                @forelse($order->orderProducts as $item)
                 <tr>
-                    <td>{{ $item->product->name }}</td>
+                    <td>{{ $item->product->name ?? 'Produk tidak tersedia' }}</td>
                     <td>Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
                     <td>{{ $item->quantity }}</td>
                     <td style="text-align: right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="4" style="text-align: center">Tidak ada produk</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
 
