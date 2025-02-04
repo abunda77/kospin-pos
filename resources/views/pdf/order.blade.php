@@ -22,6 +22,7 @@
             padding: 15px;
             background-color: #f3f4f6;
             border-radius: 5px;
+            page-break-inside: avoid;
         }
         .info-section h2 {
             margin: 0 0 10px 0;
@@ -39,6 +40,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
+            page-break-inside: avoid;
         }
         th, td {
             padding: 12px;
@@ -53,6 +55,7 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 2px solid #e5e7eb;
+            page-break-inside: avoid;
         }
         .total-row {
             display: flex;
@@ -73,6 +76,7 @@
             text-align: center;
             color: #6b7280;
             font-size: 0.9em;
+            page-break-inside: avoid;
         }
     </style>
 </head>
@@ -107,6 +111,20 @@
         <div class="info-item">
             <strong>Status:</strong> {{ ucfirst($order->status) }}
         </div>
+        
+        @if($order->paymentMethod->name === "Transfer")
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+            <div class="info-item">
+                <strong>Bank:</strong> BCA
+            </div>
+            <div class="info-item">
+                <strong>Nomor Rekening:</strong> 0889333288
+            </div>
+            <div class="info-item">
+                <strong>Atas Nama:</strong> KOPERASI SINARA ARTHA
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Detail Produk -->

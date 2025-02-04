@@ -173,7 +173,17 @@ class CheckoutController extends Controller
             ]);
         }
 
-        return view('thank-you', compact('order'));
+        // Add bank account details for Transfer payment
+        $bankDetails = null;
+        if ($order->paymentMethod && $order->paymentMethod->name === "Transfer") {
+            $bankDetails = [
+                'bank' => 'BCA',
+                'account_number' => '0889333288',
+                'account_name' => 'KOPERASI SINARA ARTHA'
+            ];
+        }
+
+        return view('thank-you', compact('order', 'bankDetails'));
     }
 
     public function generatePdf(Order $order)
