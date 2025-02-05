@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 
@@ -132,7 +130,11 @@
         <div class="header">
             <h1>INVOICE</h1>
             @if(file_exists(public_path('images/logo_sinaraartha.png')))
-                <img src="{{ asset('images/logo_sinaraartha.png') }}" alt="Pembelian Barang">
+                @php
+                    $logo = base64_encode(file_get_contents(public_path('images/logo_sinaraartha.png')));
+                    $logoData = 'data:image/png;base64,' . $logo;
+                @endphp
+                <img src="{{ $logoData }}" alt="Logo Sinara Artha">
             @else
                 <div style="height: 80px;"></div>
             @endif
@@ -140,7 +142,6 @@
             <p>{{ $order->created_at->format('d/m/Y H:i') }}</p>
         </div>
 
-        <!-- Informasi Pemesan -->
         <div class="info-section">
             <h2>Informasi Pemesan</h2>
             <div class="info-item">
@@ -153,8 +154,6 @@
                 <strong>Alamat:</strong> {{ $order->address }}
             </div>
         </div>
-
-        <!-- Informasi Pembayaran -->
         <div class="info-section">
             <h2>Informasi Pembayaran</h2>
             <div class="info-item">
@@ -179,7 +178,6 @@
             @endif
         </div>
 
-        <!-- Detail Produk -->
         <table>
             <thead>
                 <tr>
@@ -205,7 +203,6 @@
             </tbody>
         </table>
 
-        <!-- Total -->
         <div class="total-section">
             <div class="total-row">
                 <span>Subtotal</span>
@@ -233,4 +230,3 @@
 </body>
 
 </html>
-
