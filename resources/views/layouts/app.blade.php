@@ -26,7 +26,7 @@
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('catalog') }}" class="text-gray-700 hover:text-gray-900">Beranda</a>
+                    <a href="{{ route('catalog') }}" class="hidden text-gray-700 sm:block hover:text-gray-900">Beranda</a>
                     <a href="{{ route('catalog.download-pdf') }}" class="px-3 py-1 text-sm text-center text-white bg-green-500 rounded-lg transition-colors duration-300 hover:bg-green-600">
                         Download Katalog PDF
                     </a>
