@@ -46,12 +46,91 @@
 </div>
 <!-- Katalog Produk -->
 <div class="container px-4 py-12 mx-auto">
-    <div class="flex justify-between items-center mb-10">
-        <h1 class="text-3xl font-bold text-gray-900">Katalog Produk</h1>
+    <!-- Header dan Form Pencarian -->
+    <div class="flex flex-col gap-6 mb-10 md:flex-row md:items-center md:justify-between">
+        <h1 class="text-2xl font-bold text-center text-gray-900 md:text-3xl md:text-left">Katalog Produk</h1>
+
+        <!-- Form Pencarian yang Ditingkatkan -->
+        <div class="w-full md:max-w-lg">
+            <form action="{{ route('catalog') }}" method="GET" class="flex flex-col gap-3 sm:flex-row sm:gap-2">
+                @if(request()->category)
+                    <input type="hidden" name="category" value="{{ request()->category }}">
+                @endif
+                <div class="relative flex-1">
+                    <span class="flex absolute inset-y-0 left-0 items-center pl-3 text-gray-500 pointer-events-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request()->search }}"
+                        placeholder="Cari produk..."
+                        class="py-3 pr-4 pl-10 w-full text-gray-700 bg-white rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none"
+                        autocomplete="off"
+                        x-data
+                        x-on:input.debounce.300ms="$el.form.requestSubmit()"
+                    >
+                    @if(request()->search)
+                        <button
+                            type="button"
+                            onclick="window.location.href='{{ route('catalog', request()->except('search')) }}'"
+                            class="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-500 hover:text-gray-700"
+                            title="Hapus pencarian">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    @endif
+                </div>
+                <button type="submit" class="flex gap-2 justify-center items-center px-6 py-3 w-full text-white rounded-lg transition duration-150 ease-in-out bg-primary-600 hover:bg-primary-700 active:bg-primary-800 focus:ring-2 focus:ring-primary-200 focus:outline-none sm:w-auto touch-manipulation">
+                    <span class="hidden sm:inline">Cari</span>
+                    <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Indikator Hasil Pencarian -->
+            @if(request()->search)
+                <div class="mt-3 text-sm text-gray-600">
+                    Menampilkan hasil pencarian untuk "{{ request()->search }}"
+                    <span class="text-primary-600">({{ $products->total() }} hasil)</span>
+                </div>
+            @endif
+        </div>
     </div>
 
-    <div class="py-8">
-        <livewire:product-search :category="$category ?? null" />
+    <!-- Tampilan Produk -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @forelse($products as $product)
+            <div class="overflow-hidden bg-white rounded-lg shadow-lg">
+                <img
+                    src="{{ $product->image_url }}"
+                    alt="{{ $product->name }}"
+                    class="object-cover w-full h-48"
+                >
+                <div class="p-4">
+                    <h3 class="mb-2 text-xl font-semibold text-gray-800">{{ $product->name }}</h3>
+                    <p class="mb-4 text-sm text-gray-600 line-clamp-2">{{ $product->description }}</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-bold text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                        <span class="text-sm text-gray-500">Stok: {{ $product->stock }}</span>
+                    </div>
+                    <livewire:add-to-cart :product="$product" :wire:key="'cart-'.$product->id" />
+                </div>
+            </div>
+        @empty
+            <div class="col-span-full py-12 text-center">
+                <p class="text-gray-500">Tidak ada produk yang ditemukan.</p>
+            </div>
+        @endforelse
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-8">
+        {{ $products->withQueryString()->links() }}
     </div>
 </div>
 @endsection
