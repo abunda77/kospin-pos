@@ -116,7 +116,10 @@
                     <p class="mb-4 text-sm text-gray-600 line-clamp-2">{{ $product->description }}</p>
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-lg font-bold text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
-                        <span class="text-sm text-gray-500">Stok: {{ $product->stock }}</span>
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm text-gray-500">Kategori: {{ $product->category?->name ?? 'Tanpa Kategori' }}</span>
+                            <span class="text-sm text-gray-500">Stok: {{ $product->stock }}</span>
+                        </div>
                     </div>
                     <livewire:add-to-cart :product="$product" :wire:key="'cart-'.$product->id" />
                 </div>

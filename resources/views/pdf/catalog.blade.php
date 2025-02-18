@@ -3,12 +3,12 @@
 <head>
     <title>Katalog Produk</title>
     <style>
-        body { 
+        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
         }
-        .header { 
+        .header {
             text-align: center;
             margin-bottom: 30px;
         }
@@ -16,7 +16,7 @@
             max-width: 200px;
             margin-bottom: 20px;
         }
-        table { 
+        table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
@@ -65,7 +65,7 @@
                     @endif
                 </td>
                 <td>{{ $product->name }}</td>
-                <td>{{ $product->category->name }}</td>
+                <td>{{ $product->category?->name ?? 'Tanpa Kategori' }}</td>
                 <td>Rp {{ number_format($product->price, 0, ',', '.') }}</td>
                 <td>{{ $product->stock }}</td>
             </tr>
