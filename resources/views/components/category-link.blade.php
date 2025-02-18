@@ -1,14 +1,11 @@
 @props(['category'])
 
-<a href="{{ route('catalog.show', $category) }}"
-   class="flex flex-col items-center p-4 bg-white rounded-lg shadow transition-all duration-300 hover:shadow-lg hover:scale-105">
-    @if($category->image)
-        <img src="{{ Storage::url($category->image) }}"
-             alt="{{ $category->name }}"
-             class="object-cover mb-2 w-16 h-16 rounded-lg"
-             loading="lazy">
-    @else
-        <div class="flex justify-center items-center mb-2 w-16 h-16 bg-gray-100 rounded-lg">
+<a href="{{ route('catalog', ['category' => $category->slug]) }}"
+   class="flex flex-col items-center p-6 bg-white rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group {{ request()->category === $category->slug ? 'ring-2 ring-primary-500' : '' }}">
+    <div class="flex justify-center items-center mb-4 w-20 h-20 bg-gradient-to-br rounded-2xl from-primary-50 to-primary-100">
+        @if($category->icon)
+            <img src="{{ Storage::url($category->icon) }}" alt="{{ $category->name }}" class="object-contain w-10 h-10">
+        @else
             @switch(strtolower($category->name))
                 @case('makanan')
                     <svg class="w-8 h-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,7 +52,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                     </svg>
             @endswitch
-        </div>
-    @endif
-    <span class="text-sm font-medium text-center text-gray-700 group-hover:text-primary-600">{{ $category->name }}</span>
+        @endif
+    </div>
+    <span class="text-base font-semibold text-center text-gray-700 transition-colors group-hover:text-primary-600">{{ $category->name }}</span>
 </a>

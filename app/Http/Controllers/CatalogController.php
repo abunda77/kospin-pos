@@ -13,7 +13,13 @@ class CatalogController extends Controller
     public function index(Request $request)
     {
         $query = Product::where('is_active', true)->with('category');
-        
+
+        // Filter berdasarkan kategori jika ada
+        if ($request->category) {
+            $category = Category::where('slug', $request->category)->firstOrFail();
+            $query->where('category_id', $category->id);
+        }
+
         // Add search functionality
         if ($request->has('search')) {
             $query->search($request->search);
@@ -31,7 +37,10 @@ class CatalogController extends Controller
             ->inRandomOrder()
             ->get();
 
-        return view('catalog', compact('products', 'categories', 'activeBanners'));
+        // Pass category ke view jika ada
+        $category = $request->category ? Category::where('slug', $request->category)->first() : null;
+
+        return view('catalog', compact('products', 'categories', 'activeBanners', 'category'));
     }
 
     public function show(Request $request, Category $category)
@@ -39,7 +48,7 @@ class CatalogController extends Controller
         $query = Product::where('is_active', true)
             ->where('category_id', $category->id)
             ->with('category');
-            
+
         // Add search functionality
         if ($request->has('search')) {
             $query->search($request->search);
@@ -63,7 +72,7 @@ class CatalogController extends Controller
     public function downloadPdf()
     {
         ini_set('memory_limit', '256M');
-        
+
         $products = Product::where('is_active', true)
             ->with('category')
             ->paginate(50);
