@@ -1,11 +1,11 @@
 <div>
-    {{-- Success is as dangerous as failure. --}}
-    <button wire:click="addToCart"
+    <button 
+        wire:click="addToCart"
         wire:loading.attr="disabled"
-        class="w-full {{ $product->stock > 0 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed' }} text-white py-2 px-4 rounded relative"
-        {{ $product->stock == 0 ? 'disabled' : '' }}>
+        class="w-full py-2 px-4 rounded relative text-white {{ $product->stock > 0 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed' }}"
+        {{ $product->stock <= 0 ? 'disabled' : '' }}>
         <span wire:loading.remove>
-            Tambah ke Keranjang
+            {{ $product->stock > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}
         </span>
         <span wire:loading>
             <svg class="inline mr-2 w-4 h-4 animate-spin" viewBox="0 0 24 24">

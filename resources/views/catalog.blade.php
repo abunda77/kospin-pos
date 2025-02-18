@@ -50,41 +50,8 @@
         <h1 class="text-3xl font-bold text-gray-900">Katalog Produk</h1>
     </div>
 
-    @section('content')
-<div class="py-8">
-    <livewire:product-search :category="$category ?? null" />
-</div>
-@endsection
-
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        @foreach($products as $product)
-        <div class="overflow-hidden bg-white rounded-2xl shadow-lg transition-all duration-300 transform hover:shadow-xl group hover:-translate-y-2">
-            <div class="overflow-hidden relative aspect-square">
-                <img src="{{ $product->image_url }}"
-                     alt="{{ $product->name }}"
-                     class="object-cover w-full h-full transition-transform duration-500 transform group-hover:scale-105">
-                <div class="absolute inset-0 opacity-0 transition-opacity duration-300 bg-black/10 group-hover:opacity-100"></div>
-            </div>
-            <div class="p-4">
-                <h2 class="mb-2 text-lg font-semibold text-gray-800 truncate transition-colors duration-300 group-hover:text-primary-600">{{ $product->name }}</h2>
-                <div class="flex items-center mb-2">
-                    <span class="px-2 py-1 text-xs font-medium rounded-full text-primary-600 bg-primary-50">{{ $product->category->name }}</span>
-                </div>
-                <p class="mb-3 text-xl font-bold text-gray-900">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-                <div class="flex items-center mb-4">
-                    <span class="text-sm text-gray-600">Stok:</span>
-                    <span class="ml-2 px-2 py-1 text-xs font-medium {{ $product->stock > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50' }} rounded-full">
-                        {{ $product->stock }}
-                    </span>
-                </div>
-                <livewire:add-to-cart :product="$product" :wire:key="$product->id" />
-            </div>
-        </div>
-        @endforeach
-    </div>
-
-    <div class="mt-12">
-        {{ $products->links() }}
+    <div class="py-8">
+        <livewire:product-search :category="$category ?? null" />
     </div>
 </div>
 @endsection
@@ -122,13 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const DISPLAY_TIME = 5000; // 5 detik per banner
 
     function showNextBanner() {
-        // Sembunyikan banner aktif saat ini
         banners[currentIndex].classList.remove('active');
-
-        // Hitung index banner berikutnya
         currentIndex = (currentIndex + 1) % banners.length;
-
-        // Tampilkan banner berikutnya
         banners[currentIndex].classList.add('active');
     }
 
@@ -140,10 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
         clearInterval(interval);
     }
 
-    // Mulai rotasi banner
     startRotation();
 
-    // Pause saat hover
     const bannerContainer = document.querySelector('.banner-container');
     bannerContainer.addEventListener('mouseenter', pauseRotation);
     bannerContainer.addEventListener('mouseleave', startRotation);
