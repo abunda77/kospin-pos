@@ -50,6 +50,56 @@
         <h1 class="text-3xl font-bold text-gray-900">Katalog Produk</h1>
     </div>
 
+    <!-- Search Section -->
+    <div class="mb-8">
+        <form action="{{ isset($category) ? route('catalog.show', $category) : route('catalog.index') }}" method="GET">
+            <div class="max-w-3xl mx-auto">
+                <div class="relative">
+                    <!-- Search Icon -->
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    
+                    <!-- Search Input -->
+                    <input 
+                        type="text" 
+                        name="search" 
+                        placeholder="Cari produk yang Anda inginkan..." 
+                        value="{{ request('search') }}"
+                        class="w-full py-4 pl-12 pr-32 text-base text-gray-900 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                    >
+                    
+                    <!-- Search Button -->
+                    <div class="absolute inset-y-0 right-2 flex items-center">
+                        <button 
+                            type="submit"
+                            class="inline-flex items-center px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                        >
+                            <span class="hidden sm:block">Cari Produk</span>
+                            <span class="block sm:hidden">Cari</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Status -->
+                @if(request('search'))
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-600">
+                        Menampilkan hasil pencarian untuk: 
+                        <span class="font-medium text-gray-900">"{{ request('search') }}"</span>
+                        <a href="{{ isset($category) ? route('catalog.show', $category) : route('catalog.index') }}" 
+                           class="ml-2 text-blue-600 hover:text-blue-800 hover:underline">
+                            <span class="text-sm">&times;</span> Reset
+                        </a>
+                    </p>
+                </div>
+                @endif
+            </div>
+        </form>
+    </div>
+
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         @foreach($products as $product)
         <div class="overflow-hidden bg-white rounded-2xl shadow-lg transition-all duration-300 transform hover:shadow-xl group hover:-translate-y-2">

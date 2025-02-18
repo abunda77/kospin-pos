@@ -10,11 +10,16 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class CatalogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::where('is_active', true)
-            ->with('category')
-            ->paginate(12);
+        $query = Product::where('is_active', true)->with('category');
+        
+        // Add search functionality
+        if ($request->has('search')) {
+            $query->search($request->search);
+        }
+
+        $products = $query->paginate(12);
 
         $categories = Category::where('is_active', true)
             ->orderBy('name')
@@ -29,12 +34,18 @@ class CatalogController extends Controller
         return view('catalog', compact('products', 'categories', 'activeBanners'));
     }
 
-    public function show(Category $category)
+    public function show(Request $request, Category $category)
     {
-        $products = Product::where('is_active', true)
+        $query = Product::where('is_active', true)
             ->where('category_id', $category->id)
-            ->with('category')
-            ->paginate(12);
+            ->with('category');
+            
+        // Add search functionality
+        if ($request->has('search')) {
+            $query->search($request->search);
+        }
+
+        $products = $query->paginate(12);
 
         $categories = Category::where('is_active', true)
             ->orderBy('name')
@@ -55,7 +66,7 @@ class CatalogController extends Controller
         
         $products = Product::where('is_active', true)
             ->with('category')
-            ->paginate(50);  // Generate PDF with 50 products per page
+            ->paginate(50);
 
         $pdf = PDF::loadView('pdf.catalog', compact('products'));
 
