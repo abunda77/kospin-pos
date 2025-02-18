@@ -51,9 +51,11 @@ class CatalogController extends Controller
 
     public function downloadPdf()
     {
+        ini_set('memory_limit', '256M');
+        
         $products = Product::where('is_active', true)
             ->with('category')
-            ->get();
+            ->paginate(50);  // Generate PDF with 50 products per page
 
         $pdf = PDF::loadView('pdf.catalog', compact('products'));
 
