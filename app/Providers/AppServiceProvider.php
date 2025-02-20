@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Livewire\Component;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,5 +37,12 @@ class AppServiceProvider extends ServiceProvider
                 SecurityScheme::http('bearer')
             );
         });
+
+            // Mengatur akses ke dokumentasi API
+        Gate::define('viewApiDocs', function () {
+                // Selalu minta password dari env
+                return request()->hasHeader('PHP_AUTH_PW') &&
+                       request()->header('PHP_AUTH_PW') === env('SCRAMBLE_DOCS_PASSWORD');
+            });
     }
 }
