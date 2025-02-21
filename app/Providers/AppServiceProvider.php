@@ -9,6 +9,7 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Konfigurasi Paginator untuk menggunakan Tailwind
+        Paginator::useBootstrap();
+
         $forceScheme = env('FORCE_SCHEME', 'http');
         URL::forceScheme($forceScheme);
 

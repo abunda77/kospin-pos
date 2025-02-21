@@ -143,8 +143,73 @@
                     </div>
 
                     <!-- Links Pagination -->
-                    <div class="flex flex-wrap gap-2 justify-center">
-                        {!! $products->links() !!}
+                    <div class="flex justify-center">
+                        {{-- Previous Page Link --}}
+                        @if ($products->onFirstPage())
+                            <span class="px-3 py-1 text-gray-400 bg-gray-100 border rounded-l cursor-not-allowed">
+                                Previous
+                            </span>
+                        @else
+                            <a href="{{ $products->previousPageUrl() }}" class="px-3 py-1 text-gray-700 bg-white border rounded-l hover:bg-gray-100">
+                                Previous
+                            </a>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @php
+                            $start = $products->currentPage() - 2;
+                            $end = $products->currentPage() + 2;
+                            if ($start < 1) {
+                                $start = 1;
+                                $end = min(5, $products->lastPage());
+                            }
+                            if ($end > $products->lastPage()) {
+                                $end = $products->lastPage();
+                                $start = max(1, $end - 4);
+                            }
+                        @endphp
+
+                        {{-- First Page + Dots --}}
+                        @if($start > 1)
+                            <a href="{{ $products->url(1) }}" class="px-3 py-1 text-gray-700 bg-white border-t border-b hover:bg-gray-100">1</a>
+                            @if($start > 2)
+                                <span class="px-3 py-1 text-gray-700 bg-white border-t border-b">...</span>
+                            @endif
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @for ($i = $start; $i <= $end; $i++)
+                            @if ($i == $products->currentPage())
+                                <span class="px-3 py-1 text-white bg-primary-600 border-t border-b">
+                                    {{ $i }}
+                                </span>
+                            @else
+                                <a href="{{ $products->url($i) }}" class="px-3 py-1 text-gray-700 bg-white border-t border-b hover:bg-gray-100">
+                                    {{ $i }}
+                                </a>
+                            @endif
+                        @endfor
+
+                        {{-- Last Page + Dots --}}
+                        @if($end < $products->lastPage())
+                            @if($end < $products->lastPage() - 1)
+                                <span class="px-3 py-1 text-gray-700 bg-white border-t border-b">...</span>
+                            @endif
+                            <a href="{{ $products->url($products->lastPage()) }}" class="px-3 py-1 text-gray-700 bg-white border-t border-b hover:bg-gray-100">
+                                {{ $products->lastPage() }}
+                            </a>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($products->hasMorePages())
+                            <a href="{{ $products->nextPageUrl() }}" class="px-3 py-1 text-gray-700 bg-white border rounded-r hover:bg-gray-100">
+                                Next
+                            </a>
+                        @else
+                            <span class="px-3 py-1 text-gray-400 bg-gray-100 border rounded-r cursor-not-allowed">
+                                Next
+                            </span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -175,42 +240,72 @@
 
     /* Styling untuk pagination */
     nav[role="navigation"] {
-        @apply w-full;
+        width: 100%;
+        display: block;
+    }
+
+    nav[role="navigation"] > div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     nav[role="navigation"] .flex.justify-between,
     nav[role="navigation"] .hidden {
-        @apply flex flex-wrap gap-2 justify-center items-center;
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
     }
 
     nav[role="navigation"] span[aria-current="page"] span,
     nav[role="navigation"] a {
-        @apply px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all 200ms;
     }
 
     /* Halaman aktif */
     nav[role="navigation"] span[aria-current="page"] span {
-        @apply bg-primary-600 text-white;
+        background-color: var(--primary-600);
+        color: white;
     }
 
     /* Link halaman */
     nav[role="navigation"] a {
-        @apply text-gray-700 bg-white border border-gray-300 hover:bg-gray-50;
+        color: #374151;
+        background-color: white;
+        border: 1px solid #e5e7eb;
+    }
+
+    nav[role="navigation"] a:hover {
+        background-color: #f3f4f6;
     }
 
     /* Tombol disabled */
     nav[role="navigation"] span[aria-disabled="true"] {
-        @apply text-gray-400 bg-gray-100 border border-gray-300 cursor-not-allowed;
+        color: #9ca3af;
+        background-color: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        cursor: not-allowed;
     }
 
     /* Responsif */
     @media (max-width: 640px) {
         nav[role="navigation"] .sm\:hidden {
-            @apply block w-full;
+            display: block !important;
+            width: 100%;
         }
 
         nav[role="navigation"] .sm\:flex-1 {
-            @apply w-full text-center;
+            width: 100%;
+            text-align: center;
         }
     }
 </style>
