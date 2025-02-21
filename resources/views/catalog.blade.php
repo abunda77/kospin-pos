@@ -142,9 +142,9 @@
                         dari {{ $products->total() }} data
                     </div>
 
-                    <!-- Links -->
+                    <!-- Links Pagination -->
                     <div class="flex flex-wrap gap-2 justify-center">
-                        {{ $products->withQueryString()->links() }}
+                        {!! $products->links() !!}
                     </div>
                 </div>
             </div>
@@ -173,39 +173,44 @@
         pointer-events: auto;
     }
 
-    /* Styling minimalis untuk pagination */
-    .pagination {
-        @apply flex items-center gap-1;
+    /* Styling untuk pagination */
+    nav[role="navigation"] {
+        @apply w-full;
     }
 
-    .pagination > * {
-        @apply px-3 py-1 text-sm font-medium rounded-md transition-colors duration-200;
+    nav[role="navigation"] .flex.justify-between,
+    nav[role="navigation"] .hidden {
+        @apply flex flex-wrap gap-2 justify-center items-center;
     }
 
-    .pagination span[aria-current="page"] > span {
+    nav[role="navigation"] span[aria-current="page"] span,
+    nav[role="navigation"] a {
+        @apply px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+    }
+
+    /* Halaman aktif */
+    nav[role="navigation"] span[aria-current="page"] span {
         @apply bg-primary-600 text-white;
     }
 
-    .pagination a {
-        @apply text-gray-700 hover:bg-gray-100;
+    /* Link halaman */
+    nav[role="navigation"] a {
+        @apply text-gray-700 bg-white border border-gray-300 hover:bg-gray-50;
     }
 
-    .pagination span:not([aria-current="page"]) {
-        @apply text-gray-400;
+    /* Tombol disabled */
+    nav[role="navigation"] span[aria-disabled="true"] {
+        @apply text-gray-400 bg-gray-100 border border-gray-300 cursor-not-allowed;
     }
 
-    /* Responsif untuk mobile */
+    /* Responsif */
     @media (max-width: 640px) {
-        .pagination {
-            @apply flex-col w-full;
+        nav[role="navigation"] .sm\:hidden {
+            @apply block w-full;
         }
 
-        .pagination > * {
-            @apply w-full text-center justify-center;
-        }
-
-        [aria-label="Pagination Navigation"] p {
-            @apply text-center;
+        nav[role="navigation"] .sm\:flex-1 {
+            @apply w-full text-center;
         }
     }
 </style>
