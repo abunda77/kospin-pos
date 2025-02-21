@@ -133,7 +133,11 @@
 
     <!-- Pagination -->
     <div class="mt-8">
-        {{ $products->withQueryString()->links() }}
+        @if ($products->hasPages())
+            <div class="px-4 py-3 bg-white rounded-lg shadow-sm">
+                {{ $products->withQueryString()->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection
@@ -156,6 +160,50 @@
         opacity: 1;
         transform: scale(1);
         pointer-events: auto;
+    }
+
+    /* Styling untuk Pagination */
+    .pagination {
+        @apply flex flex-wrap justify-center items-center gap-2;
+    }
+
+    .pagination > * {
+        @apply inline-flex items-center px-4 py-2 text-sm font-medium border rounded-md transition-colors duration-200;
+    }
+
+    /* Styling untuk tombol aktif */
+    .pagination .active {
+        @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
+    }
+
+    /* Styling untuk tombol tidak aktif */
+    .pagination .disabled {
+        @apply bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200;
+    }
+
+    /* Styling untuk tombol normal */
+    .pagination a:not(.active):not(.disabled) {
+        @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-primary-600;
+    }
+
+    /* Styling untuk informasi halaman */
+    [aria-label="Pagination Navigation"] p {
+        @apply text-sm text-gray-700 mb-4;
+    }
+
+    /* Responsif untuk mobile */
+    @media (max-width: 640px) {
+        .pagination {
+            @apply flex-col w-full;
+        }
+
+        .pagination > * {
+            @apply w-full text-center justify-center;
+        }
+
+        [aria-label="Pagination Navigation"] p {
+            @apply text-center;
+        }
     }
 </style>
 @endpush
