@@ -7,6 +7,11 @@
                     message: data[0].message,
                 });
             });
+
+            Livewire.on('progressUpdated', ({ progress }) => {
+                // Optional: Jika Anda ingin menambahkan animasi progress bar yang lebih smooth
+                document.querySelector('.progress-bar').style.width = `${progress}%`;
+            });
         });
     </script>
 
@@ -33,27 +38,40 @@
                         <span x-text="currentImage"></span>
                         <span x-text="`${Math.round(progress)}%`"></span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="bg-primary-600 h-2.5 rounded-full" x-bind:style="`width: ${progress}%`"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                        <div class="progress-bar bg-primary-600 h-2.5 rounded-full transition-all duration-300" 
+                             x-bind:style="`width: ${progress}%`">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Image List -->
                 <div class="space-y-2">
                     @foreach($this->productImages as $image)
-                        <label class="flex items-center space-x-3 p-2 border rounded hover:bg-gray-50">
+                        <label class="flex items-center space-x-3 p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
                             <input type="checkbox" 
                                 wire:model.live="selectedImages" 
                                 value="{{ $image['id'] }}"
-                                class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                                class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700"
                                 {{ $processing ? 'disabled' : '' }}
                             >
                             <div class="flex-1">
-                                <div class="flex items-center space-x-2">
-                                    <img src="{{ $image['url'] }}" alt="{{ $image['name'] }}" class="w-12 h-12 object-cover rounded">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 flex-shrink-0 overflow-hidden rounded-lg shadow-sm">
+                                        <img 
+                                            src="{{ $image['url'] }}" 
+                                            alt="{{ $image['name'] }}" 
+                                            class="w-full h-full object-cover"
+                                            loading="lazy"
+                                        >
+                                    </div>
                                     <div>
-                                        <div class="font-medium">{{ $image['name'] }}</div>
-                                        <div class="text-sm text-gray-500">{{ $image['size'] }} KB</div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $image['name'] }}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $image['size'] }} KB
+                                        </div>
                                     </div>
                                 </div>
                             </div>
