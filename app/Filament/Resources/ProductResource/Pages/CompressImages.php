@@ -8,6 +8,7 @@ use Livewire\Attributes\On;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ImageOptimizer;
+use Filament\Notifications\Notification;
 
 class CompressImages extends Page
 {
@@ -26,16 +27,14 @@ class CompressImages extends Page
         return Product::whereNotNull('image')
             ->get()
             ->map(function ($product) {
-                // Karena image sudah tersimpan dengan path 'public/products/filename.jpg'
-                // dan Storage::path() sudah menambahkan storage/app/ di depannya
                 $path = Storage::path($product->image);
                 
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'path' => $product->image,
-                    'size' => file_exists($path) ? round(filesize($path) / 1024, 2) : 0, // Size in KB
-                    'url' => Storage::url($product->image), // Ini akan menghasilkan /storage/public/products/filename.jpg
+                    'size' => file_exists($path) ? round(filesize($path) / 1024, 2) : 0,
+                    'url' => Storage::url($product->image),
                 ];
             })
             ->filter(fn($image) => $image['size'] > 0);
@@ -44,7 +43,10 @@ class CompressImages extends Page
     public function compressSelected()
     {
         if (empty($this->selectedImages)) {
-            $this->notify('warning', 'Pilih gambar terlebih dahulu');
+            Notification::make()
+                ->warning()
+                ->title('Pilih gambar terlebih dahulu')
+                ->send();
             return;
         }
 
@@ -57,7 +59,7 @@ class CompressImages extends Page
             if (!$product || !$product->image) continue;
 
             $this->currentImage = $product->name;
-            $path = Storage::path($product->image); // Ini akan memberikan path lengkap ke file
+            $path = Storage::path($product->image);
 
             if (file_exists($path)) {
                 ImageOptimizer::optimize($path);
@@ -69,6 +71,10 @@ class CompressImages extends Page
 
         $this->processing = false;
         $this->selectedImages = [];
-        $this->notify('success', 'Kompresi gambar selesai');
+        
+        Notification::make()
+            ->success()
+            ->title('Kompresi gambar selesai')
+            ->send();
     }
 }
