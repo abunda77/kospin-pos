@@ -42,8 +42,8 @@ class BannerIklanResource extends Resource
                     ->imageEditor()
                     ->imageResizeMode('contain') // Menyesuaikan ukuran secara proporsional
                     // ->imageCropAspectRatio('16:9') // Ini akan memotong gambar jika rasio tidak sesuai
-                    ->imageResizeTargetWidth('1024')
-                    ->imageResizeTargetHeight('1024')
+                    // ->imageResizeTargetWidth('1024')
+                    // ->imageResizeTargetHeight('1024')
                     ->maxSize(2048)
                     ->preserveFilenames()
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
