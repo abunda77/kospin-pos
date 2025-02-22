@@ -35,7 +35,7 @@
                 <!-- Select All / Unselect All -->
                 <div>
                     <button @click="selectAll = !selectAll; $wire.set('selectedImages', selectAll ? @json($this->productImages->pluck('id')) : [])" class="text-sm text-blue-600">
-                        {{ selectAll ? 'Unselect All' : 'Select All' }}
+                        <span x-text="selectAll ? 'Unselect All' : 'Select All'"></span>
                     </button>
                 </div>
 
