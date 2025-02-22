@@ -50,31 +50,42 @@ class CompressImages extends Page
             return;
         }
 
-        $this->processing = true;
-        $this->progress = 0;
-        $this->totalImages = count($this->selectedImages);
+        try {
+            $this->processing = true;
+            $this->progress = 0;
+            $this->totalImages = count($this->selectedImages);
 
-        foreach ($this->selectedImages as $index => $imageId) {
-            $product = Product::find($imageId);
-            if (!$product || !$product->image) continue;
+            foreach ($this->selectedImages as $index => $imageId) {
+                $product = Product::find($imageId);
+                if (!$product || !$product->image) continue;
 
-            $this->currentImage = $product->name;
-            $path = Storage::path($product->image);
+                $this->currentImage = $product->name;
+                $path = Storage::path($product->image);
 
-            if (file_exists($path)) {
-                ImageOptimizer::optimize($path);
+                if (file_exists($path)) {
+                    ImageOptimizer::optimize($path);
+                }
+
+                $this->progress = ($index + 1) / $this->totalImages * 100;
+                $this->dispatch('progressUpdated', progress: $this->progress);
             }
 
-            $this->progress = ($index + 1) / $this->totalImages * 100;
-            $this->dispatch('progressUpdated', progress: $this->progress);
-        }
+            $this->processing = false;
+            $this->selectedImages = [];
+            
+            Notification::make()
+                ->success()
+                ->title('Kompresi gambar selesai')
+                ->send();
 
-        $this->processing = false;
-        $this->selectedImages = [];
-        
-        Notification::make()
-            ->success()
-            ->title('Kompresi gambar selesai')
-            ->send();
+        } catch (\Exception $e) {
+            $this->processing = false;
+            
+            Notification::make()
+                ->danger()
+                ->title('Terjadi kesalahan saat mengkompresi gambar')
+                ->body($e->getMessage())
+                ->send();
+        }
     }
 }
