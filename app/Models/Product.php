@@ -49,6 +49,7 @@ class Product extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
+            // Sesuaikan dengan struktur URL yang ada
             return asset('storage/' . $this->image);
         }
         return null;

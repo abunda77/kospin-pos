@@ -9,8 +9,10 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "bezhansalleh/filament-shield": "^3.3",
         "dedoc/scramble": "^0.11.33",
+        "doctrine/dbal": "^3.0",
         "filament/filament": "^3.2",
         "flowframe/laravel-trend": "^0.3.0",
+        "intervention/image": "^3.11",
         "laravel/framework": "^11.9",
         "laravel/octane": "^2.6",
         "laravel/sanctum": "^4.0",
@@ -19,7 +21,6 @@
         "mike42/escpos-php": "^4.0",
         "picqer/php-barcode-generator": "^3.2",
         "spatie/laravel-backup": "^9.2",
-        "doctrine/dbal": "^3.0",
         "spatie/laravel-permission": "^6.10"
     },
     "require-dev": {

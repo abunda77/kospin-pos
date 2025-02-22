@@ -10,6 +10,8 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\Paginator;
+use App\Models\Product;
+use App\Observers\ProductObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         // Konfigurasi Paginator untuk menggunakan Tailwind
         Paginator::useBootstrap();
 
+        // Register Product Observer
+        Product::observe(ProductObserver::class);
+
         $forceScheme = env('FORCE_SCHEME', 'http');
         URL::forceScheme($forceScheme);
 
@@ -42,11 +47,11 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-            // Mengatur akses ke dokumentasi API
+        // Mengatur akses ke dokumentasi API
         Gate::define('viewApiDocs', function () {
-                // Selalu minta password dari env
-                return request()->hasHeader('PHP_AUTH_PW') &&
-                       request()->header('PHP_AUTH_PW') === env('SCRAMBLE_DOCS_PASSWORD');
-            });
+            // Selalu minta password dari env
+            return request()->hasHeader('PHP_AUTH_PW') &&
+                   request()->header('PHP_AUTH_PW') === env('SCRAMBLE_DOCS_PASSWORD');
+        });
     }
 }

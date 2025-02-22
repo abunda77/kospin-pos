@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Set;
 use App\Filament\Clusters\Products;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Filament\Actions\Action;
 
 class ProductResource extends Resource implements HasShieldPermissions
 {
@@ -73,7 +74,16 @@ class ProductResource extends Resource implements HasShieldPermissions
                 Forms\Components\FileUpload::make('image')
                     ->image()
                     ->visibility('public')
-                    ->directory('public/products'),
+                    ->directory('public/products')
+                    ->imageEditor()
+                    ->imageResizeMode('contain')
+                    ->imageCropAspectRatio('16:9')
+                    ->imageResizeTargetWidth('1024')
+                    ->imageResizeTargetHeight('1024')
+                    ->maxSize(2048)
+                    ->preserveFilenames()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->helperText('Format yang didukung: JPG, PNG, WEBP. Maksimal 2MB'),
 
                 Forms\Components\TextInput::make('barcode')
                     ->maxLength(255),
@@ -95,7 +105,7 @@ class ProductResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('stock')
                     ->numeric()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('price')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
@@ -143,6 +153,18 @@ class ProductResource extends Resource implements HasShieldPermissions
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'compress-images' => Pages\CompressImages::route('/compress-images'),
+        ];
+    }
+
+    public static function getNavigationItems(): array
+    {
+        return [
+            ...parent::getNavigationItems(),
+            \Filament\Navigation\NavigationItem::make('Kompresi Gambar')
+                ->icon('heroicon-o-photo')
+                ->url(static::getUrl('compress-images'))
+                ->sort(3),
         ];
     }
 }
