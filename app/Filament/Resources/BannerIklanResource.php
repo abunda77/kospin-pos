@@ -40,7 +40,7 @@ class BannerIklanResource extends Resource
                     ->visibility('public')
                     ->directory('public/banners')
                     ->imageEditor()
-                    ->imageResizeMode('contain') // Menyesuaikan ukuran secara proporsional
+                    ->imageResizeMode('cover') // Menyesuaikan ukuran secara proporsional
                     // ->imageCropAspectRatio('16:9') // Ini akan memotong gambar jika rasio tidak sesuai
                     // ->imageResizeTargetWidth('1024')
                     // ->imageResizeTargetHeight('1024')
