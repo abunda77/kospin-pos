@@ -26,7 +26,7 @@
                     <h2 class="text-lg font-medium">Kompresi Gambar Produk</h2>
                     <x-filament::button
                         wire:click="compressSelected"
-                        :disabled="count($selectedImages) === 0 || $processing"
+                        :disabled="count($selectedImages) === 0 || processing"
                     >
                         Kompres {{ count($selectedImages) }} Gambar Terpilih
                     </x-filament::button>
