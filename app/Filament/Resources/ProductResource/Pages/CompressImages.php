@@ -30,7 +30,7 @@ class CompressImages extends Page
             ->get()
             ->map(function ($product) {
                 $path = Storage::path($product->image);
-                
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -45,11 +45,10 @@ class CompressImages extends Page
     public function compressSelected(): void
     {
         if (empty($this->selectedImages)) {
-            Notification::make()
-                ->warning()
-                ->title('Peringatan')
-                ->body('Pilih gambar terlebih dahulu')
-                ->send();
+            $this->dispatch('notify', [
+                'status' => 'warning',
+                'message' => 'Pilih gambar terlebih dahulu'
+            ]);
             return;
         }
 
@@ -75,21 +74,19 @@ class CompressImages extends Page
 
             $this->processing = false;
             $this->selectedImages = [];
-            
-            Notification::make()
-                ->success()
-                ->title('Berhasil')
-                ->body('Kompresi gambar selesai')
-                ->send();
+
+            $this->dispatch('notify', [
+                'status' => 'success',
+                'message' => 'Kompresi gambar selesai'
+            ]);
 
         } catch (\Exception $e) {
             $this->processing = false;
-            
-            Notification::make()
-                ->danger()
-                ->title('Error')
-                ->body('Terjadi kesalahan saat mengkompresi gambar: ' . $e->getMessage())
-                ->send();
+
+            $this->dispatch('notify', [
+                'status' => 'danger',
+                'message' => 'Terjadi kesalahan saat mengkompresi gambar: ' . $e->getMessage()
+            ]);
         }
     }
 
