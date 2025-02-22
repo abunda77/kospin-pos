@@ -105,7 +105,7 @@
                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-1">
                     Rp. {{number_format($item->price, 0, ',', '.')}}
                 </p>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                <p class="text-gray-500 dark:text-gray-400 text-sm" wire:poll.5s>
                     Stok: {{$item->stock}}
                 </p>
             </div>

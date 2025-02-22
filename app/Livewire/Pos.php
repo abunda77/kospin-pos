@@ -95,6 +95,7 @@ class Pos extends Component implements HasForms
     {
         return view('livewire.pos', [
             'products' => Product::where('stock', '>', 0)
+                            ->latest()  // This ensures we get the latest data
                             ->paginate(12)
         ]);
     }

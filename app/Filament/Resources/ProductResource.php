@@ -87,7 +87,7 @@ class ProductResource extends Resource implements HasShieldPermissions
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                ->searchable(),
+                    ->searchable(),
                 Tables\Columns\ImageColumn::make('image'),
                 Tables\Columns\TextColumn::make('category.name')
                     ->numeric()
@@ -95,6 +95,7 @@ class ProductResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('stock')
                     ->numeric()
                     ->sortable(),
+                    
                 Tables\Columns\TextColumn::make('price')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
@@ -115,6 +116,7 @@ class ProductResource extends Resource implements HasShieldPermissions
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->poll('5s') // Add polling at table level
             ->filters([
                 //
             ])

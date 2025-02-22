@@ -53,17 +53,37 @@ class CartItems extends Component
             return $item['quantity'] * $item['unit_price'];
         });
     }
+    
+    public function getStockForProduct($productId)
+    {
+        return \App\Models\Product::find($productId)?->stock ?? 0;
+    }
 
     public function incrementQuantity($productId)
     {
         if (isset($this->cart[$productId])) {
+            $currentStock = $this->getStockForProduct($productId);
+            
+            if ($this->cart[$productId]['quantity'] >= $currentStock) {
+                $this->js("
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: 'Stok tidak mencukupi!',
+                        icon: 'error',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                ");
+                return;
+            }
+            
             $this->cart[$productId]['quantity']++;
             session()->put('cart', $this->cart);
             $this->calculateTotal();
             $this->dispatch('cartUpdated');
         }
     }
-
+    
     public function decrementQuantity($productId)
     {
         if (isset($this->cart[$productId]) && $this->cart[$productId]['quantity'] > 1) {

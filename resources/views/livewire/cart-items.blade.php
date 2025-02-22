@@ -28,18 +28,21 @@
                                     </div>
                                 </td>
                                 <td class="px-2 py-2 text-center sm:px-4 md:px-6 sm:py-4">
-                                    <div class="flex justify-center items-center space-x-1 sm:space-x-2">
-                                        <button wire:click="decrementQuantity({{ $id }})" class="text-gray-500 hover:text-gray-700">
-                                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                                            </svg>
-                                        </button>
-                                        <span class="text-xs text-gray-900 sm:text-sm">{{ $item['quantity'] }}</span>
-                                        <button wire:click="incrementQuantity({{ $id }})" class="text-gray-500 hover:text-gray-700">
-                                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                            </svg>
-                                        </button>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <div class="flex justify-center items-center space-x-1 sm:space-x-2">
+                                            <button wire:click="decrementQuantity({{ $id }})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                                </svg>
+                                            </button>
+                                            <span class="text-xs text-gray-900 sm:text-sm">{{ $item['quantity'] }}</span>
+                                            <button wire:click="incrementQuantity({{ $id }})" class="text-gray-500 hover:text-gray-700" @if($item['quantity'] >= $this->getStockForProduct($id)) disabled @endif>
+                                                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <span class="text-xs text-gray-500" wire:poll.5s>Stok: {{ $this->getStockForProduct($id) }}</span>
                                     </div>
                                 </td>
                                 <td class="px-2 py-2 text-xs text-right text-gray-500 sm:px-4 md:px-6 sm:py-4 sm:text-sm">

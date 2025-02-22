@@ -118,7 +118,7 @@
                         <span class="text-lg font-bold text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
                         <div class="flex flex-col items-end">
                             <span class="text-sm text-gray-500">Kategori: {{ $product->category?->name ?? 'Tanpa Kategori' }}</span>
-                            <span class="text-sm text-gray-500">Stok: {{ $product->stock }}</span>
+                            <livewire:product-stock :product="$product" :wire:key="'stock-'.$product->id" />
                         </div>
                     </div>
                     <livewire:add-to-cart :product="$product" :wire:key="'cart-'.$product->id" />
