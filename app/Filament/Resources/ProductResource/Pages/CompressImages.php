@@ -45,10 +45,10 @@ class CompressImages extends Page
     public function compressSelected(): void
     {
         if (empty($this->selectedImages)) {
-            $this->dispatch('notify', [
-                'status' => 'warning',
-                'message' => 'Pilih gambar terlebih dahulu'
-            ]);
+            Notification::make()
+                ->warning()
+                ->title('Pilih gambar terlebih dahulu')
+                ->send();
             return;
         }
 
@@ -75,18 +75,19 @@ class CompressImages extends Page
             $this->processing = false;
             $this->selectedImages = [];
             
-            $this->dispatch('notify', [
-                'status' => 'success',
-                'message' => 'Kompresi gambar selesai'
-            ]);
+            Notification::make()
+                ->success()
+                ->title('Kompresi gambar selesai')
+                ->send();
 
         } catch (\Exception $e) {
             $this->processing = false;
             
-            $this->dispatch('notify', [
-                'status' => 'danger',
-                'message' => 'Terjadi kesalahan saat mengkompresi gambar: ' . $e->getMessage()
-            ]);
+            Notification::make()
+                ->danger()
+                ->title('Terjadi kesalahan saat mengkompresi gambar')
+                ->body($e->getMessage())
+                ->send();
         }
     }
 
