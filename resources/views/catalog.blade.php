@@ -143,14 +143,20 @@
                     </div>
 
                     <!-- Links Pagination -->
-                    <div class="flex justify-center">
+                    <div class="flex items-center justify-center gap-1 my-4">
                         {{-- Previous Page Link --}}
                         @if ($products->onFirstPage())
-                            <span class="px-3 py-1 text-gray-400 bg-gray-100 border rounded-l cursor-not-allowed">
+                            <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed transition-colors duration-150 ease-in-out">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
                                 Previous
                             </span>
                         @else
-                            <a href="{{ $products->previousPageUrl() }}" class="px-3 py-1 text-gray-700 bg-white border rounded-l hover:bg-gray-100">
+                            <a href="{{ $products->previousPageUrl() }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
                                 Previous
                             </a>
                         @endif
@@ -171,20 +177,20 @@
 
                         {{-- First Page + Dots --}}
                         @if($start > 1)
-                            <a href="{{ $products->url(1) }}" class="px-3 py-1 text-gray-700 bg-white border-t border-b hover:bg-gray-100">1</a>
+                            <a href="{{ $products->url(1) }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">1</a>
                             @if($start > 2)
-                                <span class="px-3 py-1 text-gray-700 bg-white border-t border-b">...</span>
+                                <span class="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-500">...</span>
                             @endif
                         @endif
 
                         {{-- Pagination Elements --}}
                         @for ($i = $start; $i <= $end; $i++)
                             @if ($i == $products->currentPage())
-                                <span class="px-3 py-1 text-white bg-primary-600 border-t border-b">
+                                <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-semibold text-gray-200 bg-primary-600 border border-primary-600 rounded-md shadow-sm ring-2 ring-primary-600 ring-offset-2">
                                     {{ $i }}
                                 </span>
                             @else
-                                <a href="{{ $products->url($i) }}" class="px-3 py-1 text-gray-700 bg-white border-t border-b hover:bg-gray-100">
+                                <a href="{{ $products->url($i) }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
                                     {{ $i }}
                                 </a>
                             @endif
@@ -193,21 +199,27 @@
                         {{-- Last Page + Dots --}}
                         @if($end < $products->lastPage())
                             @if($end < $products->lastPage() - 1)
-                                <span class="px-3 py-1 text-gray-700 bg-white border-t border-b">...</span>
+                                <span class="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-500">...</span>
                             @endif
-                            <a href="{{ $products->url($products->lastPage()) }}" class="px-3 py-1 text-gray-700 bg-white border-t border-b hover:bg-gray-100">
+                            <a href="{{ $products->url($products->lastPage()) }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
                                 {{ $products->lastPage() }}
                             </a>
                         @endif
 
                         {{-- Next Page Link --}}
                         @if ($products->hasMorePages())
-                            <a href="{{ $products->nextPageUrl() }}" class="px-3 py-1 text-gray-700 bg-white border rounded-r hover:bg-gray-100">
+                            <a href="{{ $products->nextPageUrl() }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
                                 Next
+                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
                             </a>
                         @else
-                            <span class="px-3 py-1 text-gray-400 bg-gray-100 border rounded-r cursor-not-allowed">
+                            <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed transition-colors duration-150 ease-in-out">
                                 Next
+                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
                             </span>
                         @endif
                     </div>

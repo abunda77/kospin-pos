@@ -42,7 +42,12 @@
                                                 </svg>
                                             </button>
                                         </div>
-                                        <span class="text-xs text-gray-500" wire:poll.5s>Stok: {{ $this->getStockForProduct($id) }}</span>
+                                        <span wire:poll.5s class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $this->getStockForProduct($id) === 0 ? 'bg-red-100 text-red-800' : ($this->getStockForProduct($id) <= 5 ? 'bg-yellow-100 text-yellow-800' : ($this->getStockForProduct($id) <= 10 ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800')) }}">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8 4-8-4m16 0l-8 4m8 4l-8 4m8-4l-8 4m8-4v4m-16-4l8 4m-8-4v4m0-8l8 4m-8-4v4m0-4l8 4" />
+                                            </svg>
+                                            Stok: {{ $this->getStockForProduct($id) }}
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="px-2 py-2 text-xs text-right text-gray-500 sm:px-4 md:px-6 sm:py-4 sm:text-sm">
