@@ -1,15 +1,14 @@
 <x-filament-panels::page>
     <script>
         document.addEventListener('livewire:initialized', () => {
-            Livewire.on('notify', (data) => {
+            Livewire.on('notify', ({ status, message }) => {
                 Filament.notify({
-                    status: data[0].status,
-                    message: data[0].message,
+                    status: status,
+                    message: message,
                 });
             });
 
-            Livewire.on('progressUpdated', ({ progress }) => {
-                // Optional: Jika Anda ingin menambahkan animasi progress bar yang lebih smooth
+            Livewire.on('progress-updated', ({ progress }) => {
                 document.querySelector('.progress-bar').style.width = `${progress}%`;
             });
         });
