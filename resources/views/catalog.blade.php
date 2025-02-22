@@ -143,18 +143,18 @@
                     </div>
 
                     <!-- Links Pagination -->
-                    <div class="flex items-center justify-center gap-1 my-4">
+                    <div class="flex gap-1 justify-center items-center my-4">
                         {{-- Previous Page Link --}}
                         @if ($products->onFirstPage())
-                            <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed transition-colors duration-150 ease-in-out">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 rounded-md border border-gray-200 transition-colors duration-150 ease-in-out cursor-not-allowed">
+                                <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                 </svg>
                                 Previous
                             </span>
                         @else
-                            <a href="{{ $products->previousPageUrl() }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <a href="{{ $products->previousPageUrl() }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-200 transition-colors duration-150 ease-in-out hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100">
+                                <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                 </svg>
                                 Previous
@@ -179,7 +179,7 @@
                         @if($start > 1)
                             <a href="{{ $products->url(1) }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">1</a>
                             @if($start > 2)
-                                <span class="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-500">...</span>
+                                <span class="inline-flex justify-center items-center px-3 py-2 text-sm text-gray-500">...</span>
                             @endif
                         @endif
 
@@ -190,7 +190,10 @@
                                     {{ $i }}
                                 </span>
                             @else
-                                <a href="{{ $products->url($i) }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
+                                @php
+                                    $url = request()->has('category') ? $products->url($i) . '&category=' . request()->get('category') : $products->url($i);
+                                @endphp
+                                <a href="{{ $url }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
                                     {{ $i }}
                                 </a>
                             @endif
@@ -199,7 +202,7 @@
                         {{-- Last Page + Dots --}}
                         @if($end < $products->lastPage())
                             @if($end < $products->lastPage() - 1)
-                                <span class="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-500">...</span>
+                                <span class="inline-flex justify-center items-center px-3 py-2 text-sm text-gray-500">...</span>
                             @endif
                             <a href="{{ $products->url($products->lastPage()) }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
                                 {{ $products->lastPage() }}
@@ -208,16 +211,19 @@
 
                         {{-- Next Page Link --}}
                         @if ($products->hasMorePages())
-                            <a href="{{ $products->nextPageUrl() }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
+                            @php
+                                $url = request()->has('category') ? $products->nextPageUrl() . '&category=' . request()->get('category') : $products->nextPageUrl();
+                            @endphp
+                            <a href="{{ $url }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-200 transition-colors duration-150 ease-in-out hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100">
                                 Next
-                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </a>
                         @else
-                            <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed transition-colors duration-150 ease-in-out">
+                            <span class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 rounded-md border border-gray-200 transition-colors duration-150 ease-in-out cursor-not-allowed">
                                 Next
-                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </span>

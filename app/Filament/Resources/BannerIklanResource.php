@@ -36,7 +36,18 @@ class BannerIklanResource extends Resource
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('banner_image')
                     ->image()
-                    ->required(),
+                    ->required()
+                    ->visibility('public')
+                    ->directory('public/banners')
+                    ->imageEditor()
+                    ->imageResizeMode('contain') // Menyesuaikan ukuran secara proporsional
+                    ->imageCropAspectRatio('16:9') // Ini akan memotong gambar jika rasio tidak sesuai
+                    ->imageResizeTargetWidth('1024')
+                    ->imageResizeTargetHeight('1024')
+                    ->maxSize(2048)
+                    ->preserveFilenames()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->helperText('Format yang didukung: JPG, PNG, WEBP. Maksimal 2MB. Gambar akan disesuaikan secara proporsional.'),
                 Forms\Components\Textarea::make('deskripsi')
                     ->required()
                     ->columnSpanFull(),
