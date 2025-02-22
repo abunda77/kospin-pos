@@ -9,9 +9,12 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ImageOptimizer;
 use Filament\Notifications\Notification;
+use Filament\Notifications\NotificationsHoisted;
 
 class CompressImages extends Page
 {
+    use NotificationsHoisted;
+    
     protected static string $resource = ProductResource::class;
 
     protected static string $view = 'filament.resources.product-resource.pages.compress-images';
