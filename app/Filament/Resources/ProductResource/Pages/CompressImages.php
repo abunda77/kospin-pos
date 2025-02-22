@@ -9,12 +9,11 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ImageOptimizer;
 use Filament\Notifications\Notification;
-use Filament\Notifications\NotificationsHoisted;
+use Filament\Support\Exceptions\Halt;
+use Filament\Actions\Action;
 
 class CompressImages extends Page
 {
-    use NotificationsHoisted;
-    
     protected static string $resource = ProductResource::class;
 
     protected static string $view = 'filament.resources.product-resource.pages.compress-images';
@@ -43,13 +42,13 @@ class CompressImages extends Page
             ->filter(fn($image) => $image['size'] > 0);
     }
 
-    public function compressSelected()
+    public function compressSelected(): void
     {
         if (empty($this->selectedImages)) {
-            Notification::make()
-                ->warning()
-                ->title('Pilih gambar terlebih dahulu')
-                ->send();
+            $this->dispatch('notify', [
+                'status' => 'warning',
+                'message' => 'Pilih gambar terlebih dahulu'
+            ]);
             return;
         }
 
@@ -76,19 +75,28 @@ class CompressImages extends Page
             $this->processing = false;
             $this->selectedImages = [];
             
-            Notification::make()
-                ->success()
-                ->title('Kompresi gambar selesai')
-                ->send();
+            $this->dispatch('notify', [
+                'status' => 'success',
+                'message' => 'Kompresi gambar selesai'
+            ]);
 
         } catch (\Exception $e) {
             $this->processing = false;
             
-            Notification::make()
-                ->danger()
-                ->title('Terjadi kesalahan saat mengkompresi gambar')
-                ->body($e->getMessage())
-                ->send();
+            $this->dispatch('notify', [
+                'status' => 'danger',
+                'message' => 'Terjadi kesalahan saat mengkompresi gambar: ' . $e->getMessage()
+            ]);
         }
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('compress')
+                ->label('Compress Selected')
+                ->action('compressSelected')
+                ->disabled(fn () => empty($this->selectedImages))
+        ];
     }
 }

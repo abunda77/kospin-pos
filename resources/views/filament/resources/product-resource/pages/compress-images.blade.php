@@ -1,4 +1,15 @@
 <x-filament-panels::page>
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('notify', (data) => {
+                Filament.notify({
+                    status: data[0].status,
+                    message: data[0].message,
+                });
+            });
+        });
+    </script>
+
     <div x-data="{ 
         processing: @entangle('processing'),
         progress: @entangle('progress'),
@@ -23,47 +34,31 @@
                         <span x-text="`${Math.round(progress)}%`"></span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="bg-primary-600 h-2.5 rounded-full transition-all duration-300"
-                             x-bind:style="`width: ${progress}%`"></div>
+                        <div class="bg-primary-600 h-2.5 rounded-full" x-bind:style="`width: ${progress}%`"></div>
                     </div>
                 </div>
 
                 <!-- Image List -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-gray-50">
-                                <th class="p-2">
-                                    <x-filament::input.checkbox
-                                        wire:model.live="selectedImages"
-                                        value="all"
-                                    />
-                                </th>
-                                <th class="p-2 text-left">Gambar</th>
-                                <th class="p-2 text-left">Nama Produk</th>
-                                <th class="p-2 text-right">Ukuran</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($this->productImages as $image)
-                            <tr class="border-t">
-                                <td class="p-2">
-                                    <x-filament::input.checkbox
-                                        wire:model.live="selectedImages"
-                                        value="{{ $image['id'] }}"
-                                    />
-                                </td>
-                                <td class="p-2">
-                                    <img src="{{ $image['url'] }}" 
-                                         alt="{{ $image['name'] }}"
-                                         class="w-16 h-16 object-cover rounded">
-                                </td>
-                                <td class="p-2">{{ $image['name'] }}</td>
-                                <td class="p-2 text-right">{{ $image['size'] }} KB</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="space-y-2">
+                    @foreach($this->productImages as $image)
+                        <label class="flex items-center space-x-3 p-2 border rounded hover:bg-gray-50">
+                            <input type="checkbox" 
+                                wire:model.live="selectedImages" 
+                                value="{{ $image['id'] }}"
+                                class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                                {{ $processing ? 'disabled' : '' }}
+                            >
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <img src="{{ $image['url'] }}" alt="{{ $image['name'] }}" class="w-12 h-12 object-cover rounded">
+                                    <div>
+                                        <div class="font-medium">{{ $image['name'] }}</div>
+                                        <div class="text-sm text-gray-500">{{ $image['size'] }} KB</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    @endforeach
                 </div>
             </div>
         </x-filament::card>
