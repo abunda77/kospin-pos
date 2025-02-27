@@ -75,7 +75,7 @@ class CatalogController extends Controller
 
         $products = Product::where('is_active', true)
             ->with('category')
-            ->paginate(50);
+            ->get();
 
         $pdf = PDF::loadView('pdf.catalog', compact('products'));
 
