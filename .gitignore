@@ -51,3 +51,5 @@ frankenphp-worker.php
 # windsurf rules
 .windsurfrules
 .aider*
+
+.cursor/*
