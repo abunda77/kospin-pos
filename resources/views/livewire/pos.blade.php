@@ -112,7 +112,137 @@
 
         <!-- Pagination -->
         <div class="mt-6">
-            {{ $products->links() }}
+            <div class="flex justify-center">
+                <style>
+                    /* Styling untuk pagination */
+                    .pagination-container {
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        gap: 0.5rem;
+                        margin-top: 1rem;
+                        background-color: white;
+                        padding: 1rem;
+                        border-radius: 0.5rem;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    }
+
+                    .dark .pagination-container {
+                        background-color: #1f2937;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                    }
+
+                    .pagination-item {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-width: 2.5rem;
+                        height: 2.5rem;
+                        padding: 0 0.75rem;
+                        background-color: white;
+                        color: #374151;
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                        border-radius: 0.375rem;
+                        border: 1px solid #e5e7eb;
+                        transition: all 200ms;
+                        text-decoration: none;
+                    }
+
+                    .dark .pagination-item {
+                        background-color: #374151;
+                        color: #e5e7eb;
+                        border: 1px solid #4b5563;
+                    }
+
+                    .pagination-item:hover {
+                        background-color: #f3f4f6;
+                        color: #6366f1;
+                        border-color: #c7d2fe;
+                    }
+
+                    .dark .pagination-item:hover {
+                        background-color: #4b5563;
+                        color: #a5b4fc;
+                        border-color: #6366f1;
+                    }
+
+                    .pagination-active {
+                        background-color: #6366f1;
+                        color: white;
+                        border: 1px solid #6366f1;
+                        font-weight: 600;
+                    }
+
+                    .dark .pagination-active {
+                        background-color: #6366f1;
+                        color: white;
+                        border: 1px solid #818cf8;
+                    }
+
+                    .pagination-disabled {
+                        color: #9ca3af;
+                        background-color: #f3f4f6;
+                        border: 1px solid #e5e7eb;
+                        cursor: not-allowed;
+                    }
+
+                    .dark .pagination-disabled {
+                        color: #6b7280;
+                        background-color: #374151;
+                        border: 1px solid #4b5563;
+                    }
+                </style>
+                <div class="pagination-container">
+                    <!-- Previous page -->
+                    @if ($products->onFirstPage())
+                        <span class="pagination-item pagination-disabled">«</span>
+                    @else
+                        <a href="{{ $products->previousPageUrl() }}" class="pagination-item">«</a>
+                    @endif
+
+                    <!-- Numbered pages -->
+                    @php
+                        $start = max(1, $products->currentPage() - 2);
+                        $end = min($start + 4, $products->lastPage());
+                        if ($end < $products->lastPage() - 1) {
+                            $end = min($end, $products->currentPage() + 2);
+                        }
+                        if ($start > 2) {
+                            $start = max(1, $end - 4);
+                        }
+                    @endphp
+
+                    @if ($start > 1)
+                        <a href="{{ $products->url(1) }}" class="pagination-item">1</a>
+                        @if ($start > 2)
+                            <span class="pagination-item pagination-disabled">...</span>
+                        @endif
+                    @endif
+
+                    @for ($i = $start; $i <= $end; $i++)
+                        @if ($i == $products->currentPage())
+                            <span class="pagination-item pagination-active">{{ $i }}</span>
+                        @else
+                            <a href="{{ $products->url($i) }}" class="pagination-item">{{ $i }}</a>
+                        @endif
+                    @endfor
+
+                    @if ($end < $products->lastPage())
+                        @if ($end < $products->lastPage() - 1)
+                            <span class="pagination-item pagination-disabled">...</span>
+                        @endif
+                        <a href="{{ $products->url($products->lastPage()) }}" class="pagination-item">{{ $products->lastPage() }}</a>
+                    @endif
+
+                    <!-- Next page -->
+                    @if ($products->hasMorePages())
+                        <a href="{{ $products->nextPageUrl() }}" class="pagination-item">»</a>
+                    @else
+                        <span class="pagination-item pagination-disabled">»</span>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
     <div class="block p-6 bg-white rounded-lg shadow-md md:col-span-1 dark:bg-gray-800 md:hidden">
