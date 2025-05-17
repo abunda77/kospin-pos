@@ -250,7 +250,47 @@ class Pos extends Component implements HasForms
                 break;
             }
         }
+
         session()->put('orderItems', $this->order_items);
+    }
+
+    public function updatedOrderItems($value, $key)
+    {
+        $parts = explode('.', $key);
+        if (count($parts) === 3 && $parts[2] === 'quantity') {
+            $index = $parts[1];
+            $product_id = $this->order_items[$index]['product_id'];
+            $product = Product::find($product_id);
+
+            if (!$product) {
+                Notification::make()
+                    ->title('Produk tidak ditemukan')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            // Validasi nilai kuantitas
+            $quantity = intval($value);
+            if ($quantity <= 0) {
+                // Hapus item jika kuantitas 0 atau negatif
+                unset($this->order_items[$index]);
+                $this->order_items = array_values($this->order_items);
+            } else if ($quantity > $product->stock) {
+                // Batasi kuantitas sesuai stok yang tersedia
+                $this->order_items[$index]['quantity'] = $product->stock;
+                Notification::make()
+                    ->title('Stok barang tidak mencukupi')
+                    ->body("Stok tersedia: {$product->stock}")
+                    ->danger()
+                    ->send();
+            } else {
+                // Set kuantitas sesuai input
+                $this->order_items[$index]['quantity'] = $quantity;
+            }
+
+            session()->put('orderItems', $this->order_items);
+        }
     }
 
     public function calculateTotal()
