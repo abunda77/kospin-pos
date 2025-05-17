@@ -34,8 +34,8 @@ Aplikasi siap di gunakan....
 -   PHP 8.2+
 -   Laravel Framework 11.9
 -   Laravel Filament 3.2 (Admin Panel)
--   Laravel Sanctum (API Authentication)
--   Laravel Octane (Performance)
+-   Laravel Sanctum 4.0 (API Authentication)
+-   Laravel Octane 2.6 (Performance)
 -   Spatie Laravel Permission 6.10 (Role & Permission)
 -   Bezhansalleh Filament Shield 3.3 (Admin Panel Security)
 -   Barryvdh Laravel DomPDF 3.1 (PDF Generator)
@@ -44,12 +44,17 @@ Aplikasi siap di gunakan....
 -   Spatie Laravel Backup 9.2
 -   Maatwebsite Excel 3.1 (Excel Import/Export)
 -   Intervention Image 3.11 (Image Processing)
+-   Dedoc Scramble 0.11.33 (API Documentation)
+-   Flowframe Laravel Trend 0.3.0 (Data Trending)
+-   Doctrine DBAL 3.0 (Database Abstraction Layer)
 
 ### Frontend
 
--   TailwindCSS
--   Vite
--   Axios
+-   TailwindCSS 3.4.1
+-   Vite 5.0
+-   Axios 1.6.4
+-   PostCSS 8.4.33
+-   Autoprefixer 10.4.17
 
 ## Model yang Digunakan
 
