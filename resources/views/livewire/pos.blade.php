@@ -10,6 +10,15 @@
                     <div class="px-2">
                         <h3 class="text-sm font-semibold">{{$item['name']}}</h3>
                         <p class="text-xs text-gray-600 dark:text-gray-400">Rp {{number_format($item['price'], 0, ',', '.')}}</p>
+                        <div class="mt-1" wire:poll.5s>
+                            @php
+                                $stock = \App\Models\Product::find($item['product_id'])->stock;
+                                $stockColor = $stock > 5 ? 'bg-green-500' : ($stock > 1 ? 'bg-yellow-500' : 'bg-red-500');
+                            @endphp
+                            <span class="px-2 py-0.5 text-xs text-white rounded-full {{ $stockColor }}">
+                                Stok: {{ $stock }}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center">
@@ -65,8 +74,18 @@
                 <!-- Checkout Button -->
                 <x-filament::button
                     type="submit"
-                    class="py-2 w-full h-12 text-white rounded-lg transition-colors duration-200 bg-primary hover:bg-primary-600">
-                    Checkout
+                    wire:loading.attr="disabled"
+                    wire:loading.class="opacity-70 cursor-wait"
+                    wire:target="checkout"
+                    class="py-2 w-full h-12 text-white rounded-lg shadow-lg transition-colors duration-200 bg-primary hover:bg-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    <span wire:loading.remove wire:target="checkout">Checkout</span>
+                    <span wire:loading wire:target="checkout" class="flex justify-center items-center">
+                        <svg class="mr-2 -ml-1 w-4 h-4 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memproses...
+                    </span>
                 </x-filament::button>
             </div>
         </form>
@@ -256,6 +275,15 @@
                     <div class="px-2">
                         <h3 class="text-sm font-semibold">{{$item['name']}}</h3>
                         <p class="text-xs text-gray-600 dark:text-gray-400">Rp {{number_format($item['price'], 0, ',', '.')}}</p>
+                        <div class="mt-1" wire:poll.2s>
+                            @php
+                                $stock = \App\Models\Product::find($item['product_id'])->stock;
+                                $stockColor = $stock > 5 ? 'bg-green-500' : ($stock > 1 ? 'bg-yellow-500' : 'bg-red-500');
+                            @endphp
+                            <span class="px-2 py-0.5 text-xs text-white rounded-full {{ $stockColor }}">
+                                Stok: {{ $stock }}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center">

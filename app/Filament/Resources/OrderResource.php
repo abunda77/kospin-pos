@@ -305,7 +305,7 @@ class OrderResource extends Resource implements HasShieldPermissions
                 Action::make('PrintPDF')
                     ->label('Cetak Ulang Struk')
                     ->action(function (Order $record) {
-                        $order = Order::findOrFail($record->id);
+                        $order = Order::with(['anggota', 'user', 'paymentMethod'])->findOrFail($record->id);
                         $order_items = OrderProduct::where('order_id', $order->id)->get();
                         $setting = Setting::first();
 

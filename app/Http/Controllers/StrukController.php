@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
@@ -12,10 +12,11 @@ class StrukController extends Controller
 {
     public function show($orderId)
     {
-        $order = Order::findOrFail($orderId);
+        $order = Order::with(['anggota', 'user', 'paymentMethod'])->findOrFail($orderId);
         $order_items = OrderProduct::where('order_id', $order->id)->get();
         $setting = Setting::first();
+        $payment_method = $order->paymentMethod;
 
-        return view('struk', compact('order', 'order_items', 'setting'));
+        return view('struk', compact('order', 'order_items', 'setting', 'payment_method'));
     }
 }

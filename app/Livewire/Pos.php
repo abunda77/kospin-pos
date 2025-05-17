@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\Setting;
 use App\Models\Anggota;
+use Illuminate\Support\Facades\Auth;
 
 
 use Filament\Forms\Components\TextInput;
@@ -332,6 +333,56 @@ class Pos extends Component implements HasForms
             'payment_method_id' => 'required'
         ]);
 
+        // Validasi stok sebelum checkout
+        $invalidItems = [];
+        foreach ($this->order_items as $item) {
+            $product = Product::find($item['product_id']);
+            if (!$product || $product->stock < $item['quantity']) {
+                $invalidItems[] = [
+                    'name' => $product ? $product->name : 'Produk tidak ditemukan',
+                    'requested' => $item['quantity'],
+                    'available' => $product ? $product->stock : 0
+                ];
+            }
+        }
+
+        // Jika ada item yang tidak valid, tampilkan notifikasi dan batalkan checkout
+        if (count($invalidItems) > 0) {
+            $errorMessage = '';
+            foreach ($invalidItems as $item) {
+                $errorMessage .= "• {$item['name']} - Diminta: {$item['requested']}, Tersedia: {$item['available']}\n";
+            }
+
+            Notification::make()
+                ->title('Stok tidak mencukupi')
+                ->body($errorMessage)
+                ->danger()
+                ->persistent()
+                ->actions([
+                    \Filament\Notifications\Actions\Action::make('refresh')
+                        ->label('Refresh Stok')
+                        ->button()
+                        ->close()
+                        ->action(function () {
+                            // Refresh stok untuk semua item
+                            foreach ($this->order_items as $key => $item) {
+                                $product = Product::find($item['product_id']);
+                                if ($product && $product->stock < $item['quantity']) {
+                                    $this->order_items[$key]['quantity'] = $product->stock;
+                                    if ($product->stock <= 0) {
+                                        unset($this->order_items[$key]);
+                                    }
+                                }
+                            }
+                            $this->order_items = array_values($this->order_items);
+                            session()->put('orderItems', $this->order_items);
+                        })
+                ])
+                ->send();
+
+            return;
+        }
+
         $payment_method_id_temp = $this->payment_method_id;
         $total_price = $this->calculateTotal();
 
@@ -349,7 +400,8 @@ class Pos extends Component implements HasForms
             'payment_method_id' => $payment_method_id_temp,
             'anggota_id' => $this->anggota_id,
             'discount' => $this->discount,
-            'status' => 'completed'
+            'status' => 'completed',
+            'user_id' => Auth::id() // Gunakan Auth facade
         ]);
 
         // Update total pembelian anggota jika ada
@@ -522,10 +574,9 @@ class Pos extends Component implements HasForms
 
     public function confirmPrint2()
     {
-        $order = Order::findOrFail($this->orderToPrint);
+        $order = Order::with(['anggota', 'user', 'paymentMethod'])->findOrFail($this->orderToPrint);
 
         redirect(route('struk', $order->id));
-
     }
 
     public function addAnggota()

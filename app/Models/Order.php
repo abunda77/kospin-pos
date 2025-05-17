@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class Order extends Model
 {
@@ -31,11 +32,17 @@ class Order extends Model
                 $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
                 $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
             }
+
+            // Set current user as cashier if not set
+            if (empty($model->user_id) && Auth::check()) {
+                $model->user_id = Auth::id();
+            }
         });
     }
 
     protected $fillable = [
         'payment_method_id',
+        'user_id',
         'name',
         'whatsapp',
         'address',
@@ -70,5 +77,10 @@ class Order extends Model
     public function voucher(): BelongsTo
     {
         return $this->belongsTo(VoucherDiskon::class, 'voucher_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

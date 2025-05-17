@@ -41,19 +41,19 @@
 
         .receipt .header p {
             margin: 0;
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 100;
         }
 
         .receipt .content {
-            font-size: 20px;
+            font-size: 15px;
         }
 
         .receipt .content p {
             margin: 4px;
             letter-spacing: 0.5px;
             /* Atur jarak antar huruf */
-            font-weight: 100;
+            font-weight: 75;
             /* Huruf lebih tipis */
         }
 
@@ -69,7 +69,7 @@
         }
 
         .receipt .content table td {
-            font-weight: 100;
+            font-weight: 85;
             /* Huruf lebih tipis */
         }
 
@@ -115,6 +115,18 @@
             <p>=============================</p>
             <p>No. Order: {{ $order->no_order }}</p>
             <p>Tanggal :{{ date('d-m-Y, H:i') }}</p>
+
+            <!-- Informasi Customer dan Kasir -->
+            @if($order->anggota)
+            <p>Customer: {{ $order->anggota->nama_lengkap }}</p>
+            @elseif($order->name)
+            <p>Customer: {{ $order->name }}</p>
+            @endif
+
+            @if($order->user)
+            <p>Kasir: {{ $order->user->name }}</p>
+            @endif
+
             <table>
                 <thead>
                     <tr>
