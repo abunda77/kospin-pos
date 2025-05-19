@@ -10,7 +10,9 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\Paginator;
+use App\Models\Order;
 use App\Models\Product;
+use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Product Observer
         Product::observe(ProductObserver::class);
+
+        // Register Order Observer
+        Order::observe(OrderObserver::class);
 
         $forceScheme = env('FORCE_SCHEME', 'http');
         URL::forceScheme($forceScheme);
