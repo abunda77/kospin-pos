@@ -114,7 +114,7 @@
         <div class="content">
             <p>=============================</p>
             <p>No. Order: {{ $order->no_order }}</p>
-            <p>Tanggal :{{ date('d-m-Y, H:i') }}</p>
+            <p>Tanggal : {{ $order->created_at->format('d-m-Y, H:i') }}</p>
 
             <!-- Informasi Customer dan Kasir -->
             @if($order->anggota)
