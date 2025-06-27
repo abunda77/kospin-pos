@@ -9,7 +9,7 @@
                 <div class="text-center mb-12">
                     <h1 class="text-4xl font-bold text-gray-900 mb-4">Tentang Kami</h1>
                     <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                        Koperasi Sinar Artha adalah koperasi serba usaha yang telah melayani kebutuhan anggota dengan dedikasi tinggi sejak tahun 2021.
+                    <strong>Koperasi Sinar Artha </strong> adalah koperasi serba usaha yang telah melayani kebutuhan anggota dengan dedikasi tinggi sejak tahun 2021.
                     </p>
                 </div>
 

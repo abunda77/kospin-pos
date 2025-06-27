@@ -61,7 +61,7 @@
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Tentang Kami</h3>
                     <p class="text-gray-300">
-                        Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2021.
+                        Sinara Artha adalah Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2021.
                     </p>
                 </div>
 
