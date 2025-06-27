@@ -27,6 +27,8 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('catalog') }}" class="hidden text-gray-700 sm:block hover:text-gray-900">Beranda</a>
+                    <a href="{{ route('about') }}" class="hidden text-gray-700 sm:block hover:text-gray-900">Tentang Kami</a>
+                    <a href="{{ route('contact') }}" class="hidden text-gray-700 sm:block hover:text-gray-900">Kontak</a>
                     <a href="{{ route('catalog.download-pdf') }}" class="px-3 py-1 text-sm text-center text-white bg-green-500 rounded-lg transition-colors duration-300 hover:bg-green-600">
                         Download Katalog PDF
                     </a>
@@ -59,14 +61,14 @@
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Tentang Kami</h3>
                     <p class="text-gray-300">
-                        Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2010.
+                        Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2021.
                     </p>
                 </div>
 
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Alamat Kantor</h3>
                     <p class="text-gray-300">
-                        Easten Park Residence Blok B7 No. 7,<br>
+                        Eastern Park Residence Blok B No. 7,<br>
                         Sukolilo, Surabaya 60111
                     </p>
                 </div>

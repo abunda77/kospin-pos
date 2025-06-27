@@ -7,6 +7,7 @@ use App\Http\Controllers\StrukController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PageController;
 
 
 
@@ -29,6 +30,10 @@ Route::get('/catalog', [CatalogController::class, 'index'])
 
 Route::get('/catalog/download-pdf', [CatalogController::class, 'downloadPdf'])->name('catalog.download-pdf');
 Route::get('/catalog/{category}', [CatalogController::class, 'show'])->name('catalog.show');
+
+// Static pages
+Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 
 
 
