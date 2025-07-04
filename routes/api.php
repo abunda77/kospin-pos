@@ -43,6 +43,6 @@ Route::get('orders-public/{orderId}', [CheckoutUserController::class, 'getOrderD
 // Route::post('payment/notification/midtrans', [CheckoutController::class, 'handleNotification']);
 
 // Midtrans notification handler menggunakan WebhookController yang lebih lengkap
-Route::post('/midtrans/notification', [WebhookController::class, 'handle']);
+Route::post('/midtrans/notification', [WebhookController::class, 'handle'])->name('api.midtrans.notification');
 
 

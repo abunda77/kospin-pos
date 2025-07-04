@@ -25,7 +25,7 @@ class CheckoutController extends Controller
         Config::$is3ds = true;
 
         // Gunakan URL redirect dari konfigurasi route
-        Config::$overrideNotifUrl = route('midtrans.notification');
+        Config::$overrideNotifUrl = route('api.midtrans.notification');
     }
 
     public function index(Request $request)
