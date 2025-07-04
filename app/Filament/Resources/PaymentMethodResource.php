@@ -46,7 +46,29 @@ class PaymentMethodResource extends Resource implements HasShieldPermissions
                     ->image()
                     ->required(),
                 Forms\Components\Toggle::make('is_cash')
-                    ->required(),
+                    ->required()
+                    ->label('Pembayaran Tunai'),
+                Forms\Components\Select::make('gateway')
+                    ->label('Payment Gateway')
+                    ->options([
+                        '' => 'Manual (Tanpa Gateway)',
+                        'midtrans' => 'Midtrans',
+                        'xendit' => 'Xendit',
+                        'duitku' => 'Duitku',
+                    ])
+                    ->reactive()
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('gateway_config', null)),
+                Forms\Components\KeyValue::make('gateway_config')
+                    ->label('Konfigurasi Gateway')
+                    ->visible(fn (Forms\Get $get) => !empty($get('gateway')))
+                    ->keyLabel('Parameter')
+                    ->valueLabel('Nilai')
+                    ->keyPlaceholder('Contoh: payment_type')
+                    ->valuePlaceholder('Contoh: credit_card')
+                    ->columnSpanFull(),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Aktif?')
+                    ->default(true),
             ]);
     }
 
@@ -59,6 +81,11 @@ class PaymentMethodResource extends Resource implements HasShieldPermissions
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_cash')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('gateway')
+                    ->label('Gateway'),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
+                    ->label('Aktif?'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -101,3 +128,4 @@ class PaymentMethodResource extends Resource implements HasShieldPermissions
         ];
     }
 }
+

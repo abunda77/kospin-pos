@@ -15,30 +15,25 @@
             <livewire:cart-voucher />
         </div>
 
-        <!-- Metode Pembayaran -->
+        <!-- Tombol Lanjut ke Pembayaran -->
         <div class="p-4 bg-white rounded-lg shadow-md md:p-6">
-            <h2 class="mb-4 text-lg font-semibold">Metode Pembayaran</h2>
-            <form action="{{ route('checkout') }}" method="GET">
-                @csrf
-                <div class="space-y-3">
-                    @foreach($paymentMethods as $method)
-                    <label class="flex items-center p-4 rounded-lg border cursor-pointer hover:bg-gray-50">
-                        <input type="radio" name="payment_method_id" value="{{ $method->id }}"
-                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            {{ $loop->first ? 'checked' : '' }}>
-                        <span class="ml-3 text-sm font-medium text-gray-700">{{ $method->name }}</span>
-                    </label>
-                    @endforeach
-                </div>
-
-                <div class="mt-6">
-                    <button type="submit"
-                        class="px-6 py-3 w-full text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                        Lanjut ke Pembayaran
-                    </button>
-                </div>
-            </form>
+            <a href="{{ route('checkout') }}"
+               x-data="{ loading: false }"
+               x-on:click="loading = true"
+               class="block px-6 py-3 w-full text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 touch-manipulation"
+               x-bind:class="{ 'opacity-70 cursor-wait': loading }">
+                <span x-show="!loading">Lanjut ke Pembayaran</span>
+                <span x-show="loading" class="flex justify-center items-center">
+                    <svg class="inline mr-2 w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Memproses...
+                </span>
+            </a>
         </div>
     </div>
 </div>
 @endsection
+
+

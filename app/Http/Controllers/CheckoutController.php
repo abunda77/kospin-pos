@@ -6,16 +6,39 @@ use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\PaymentMethod;
 use App\Models\Anggota;
-use App\Models\VoucherDiskon; // tambahkan model VoucherDiskon
+use App\Models\VoucherDiskon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
+use Midtrans\Config;
+use Midtrans\CoreApi;
+use Midtrans\Transaction;
 
 class CheckoutController extends Controller
 {
+    public function __construct()
+    {
+        // Set konfigurasi Midtrans
+        Config::$serverKey = config('services.midtrans.server_key');
+        Config::$isProduction = config('services.midtrans.is_production', false);
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        // Gunakan URL redirect dari konfigurasi route
+        Config::$overrideNotifUrl = route('api.midtrans.notification');
+    }
+
     public function index(Request $request)
     {
         $cart = session()->get('cart', []);
-        $paymentMethods = PaymentMethod::where('is_cash', true)->get();
+
+        // Cek jika keranjang kosong, redirect ke halaman cart
+        if (empty($cart)) {
+            return redirect()->route('cart')->with('error', 'Keranjang belanja Anda kosong');
+        }
+
+        // Ambil semua metode pembayaran yang aktif
+        $paymentMethods = PaymentMethod::where('is_active', true)->get();
 
         // Hitung subtotal
         $subtotal = collect($cart)->sum(function ($item) {
@@ -31,9 +54,7 @@ class CheckoutController extends Controller
         // Hitung total setelah diskon
         $total = $subtotal - $discount;
 
-        $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
-
-        return view('checkout', compact('cart', 'paymentMethods', 'subtotal', 'total', 'paymentMethod'));
+        return view('checkout', compact('cart', 'paymentMethods', 'subtotal', 'total'));
     }
 
     public function checkMember($nik)
@@ -183,7 +204,48 @@ class CheckoutController extends Controller
             ];
         }
 
+        // Jika menggunakan Midtrans, cek status transaksi
+        if ($order->paymentMethod && $order->paymentMethod->gateway === 'midtrans' && $order->transaction_id) {
+            try {
+                $status = Transaction::status($order->transaction_id);
+
+                // Update status dan payment details jika ada perubahan
+                if ((is_object($status) && isset($status->transaction_status)) ||
+                    (is_array($status) && isset($status['transaction_status']))) {
+
+                    $transactionStatus = is_object($status) ? $status->transaction_status : $status['transaction_status'];
+
+                    $order->update([
+                        'status' => $this->mapMidtransStatus($transactionStatus),
+                        'payment_details' => json_encode($status)
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error fetching transaction status: ' . $e->getMessage());
+            }
+        }
+
         return view('thank-you', compact('order', 'bankDetails'));
+    }
+
+    /**
+     * Memetakan status transaksi Midtrans ke status order
+     */
+    private function mapMidtransStatus($transactionStatus)
+    {
+        switch ($transactionStatus) {
+            case 'capture':
+            case 'settlement':
+                return 'completed';
+            case 'pending':
+                return 'pending';
+            case 'deny':
+            case 'cancel':
+            case 'expire':
+                return 'failed';
+            default:
+                return 'pending';
+        }
     }
 
     public function generatePdf(Order $order)
@@ -194,4 +256,459 @@ class CheckoutController extends Controller
             echo $pdf->output();
         }, 'Invoice-' . str_pad($order->id, 5, '0', STR_PAD_LEFT) . '.pdf');
     }
+
+    public function processPayment(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'payment_method_id' => 'required|exists:payment_methods,id',
+            'name' => 'required|string|max:255',
+            'whatsapp' => 'required|string|max:20',
+            'address' => 'required|string',
+        ]);
+
+        // Log untuk debugging
+        Log::info('Payment request received', [
+            'payment_method_id' => $request->payment_method_id,
+            'payment_type' => $request->payment_type ?? 'not set',
+            'all_data' => $request->all()
+        ]);
+
+        $cart = session()->get('cart', []);
+        $voucher = session()->get('voucher');
+
+        // Hitung subtotal
+        $subtotal = collect($cart)->sum(function ($item) {
+            return $item['quantity'] * $item['unit_price'];
+        });
+
+        // Hitung diskon jika ada voucher
+        $discount = 0;
+        if ($voucher) {
+            $discount = $voucher['discount'];
+        }
+
+        // Hitung total setelah diskon
+        $total = $subtotal - $discount;
+
+        // Ambil payment method
+        $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
+
+        // Buat order dengan status pending
+        $order = Order::create([
+            'payment_method_id' => $request->payment_method_id,
+            'name' => $request->name,
+            'whatsapp' => $request->whatsapp,
+            'address' => $request->address,
+            'subtotal_amount' => $subtotal,
+            'discount_amount' => $discount,
+            'total_amount' => $total,
+            'total_price' => $total,
+            'voucher_id' => $voucher ? $voucher['id'] : null,
+            'status' => 'pending'
+        ]);
+
+        // Simpan order products
+        foreach ($cart as $id => $item) {
+            OrderProduct::create([
+                'order_id' => $order->id,
+                'product_id' => $id,
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price']
+            ]);
+        }
+
+        // Kurangi stok voucher jika digunakan
+        if ($voucher) {
+            $voucherModel = VoucherDiskon::find($voucher['id']);
+            if ($voucherModel) {
+                $voucherModel->decrement('stok_voucher');
+            }
+        }
+
+        // Jika payment method menggunakan Midtrans
+        if ($paymentMethod->gateway === 'midtrans') {
+            try {
+                // Set konfigurasi Midtrans
+                \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
+                \Midtrans\Config::$isProduction = (bool) config('services.midtrans.is_production');
+                \Midtrans\Config::$isSanitized = true;
+                \Midtrans\Config::$is3ds = true;
+
+                // Siapkan item details untuk Midtrans
+                $items = [];
+                foreach ($cart as $id => $item) {
+                    $items[] = [
+                        'id' => $id,
+                        'price' => $item['unit_price'],
+                        'quantity' => $item['quantity'],
+                        'name' => $item['name'],
+                    ];
+                }
+
+                // Tambahkan item diskon jika ada
+                if ($discount > 0) {
+                    $items[] = [
+                        'id' => 'DISCOUNT',
+                        'price' => -$discount,
+                        'quantity' => 1,
+                        'name' => 'Discount',
+                    ];
+                }
+
+                // Buat order_id untuk Midtrans
+                $midtransOrderId = $order->no_order . '-' . substr(time(), -4);
+
+                // Siapkan parameter transaksi
+                $transactionParams = [
+                    'transaction_details' => [
+                        'order_id' => $midtransOrderId,
+                        'gross_amount' => $total,
+                    ],
+                    'customer_details' => [
+                        'first_name' => $request->name,
+                        'phone' => $request->whatsapp,
+                        'billing_address' => [
+                            'address' => $request->address,
+                        ],
+                    ],
+                    'item_details' => $items,
+                    'callbacks' => [
+                        'finish' => route('payment.finish'),
+                        'unfinish' => route('payment.unfinish'),
+                        'error' => route('payment.error')
+                    ]
+                ];
+
+                // Update transaction_id di order
+                $order->update([
+                    'transaction_id' => $midtransOrderId
+                ]);
+
+                // Pastikan payment_type tidak null dengan default bank_transfer
+                $paymentType = $request->input('payment_type', 'bank_transfer');
+
+                // Log payment type untuk debugging
+                Log::info('Processing payment with type: ' . $paymentType, [
+                    'payment_type_from_form' => $request->payment_type,
+                    'payment_type_used' => $paymentType
+                ]);
+
+                // Proses berdasarkan jenis pembayaran
+                switch ($paymentType) {
+                    case 'credit_card':
+                        // Proses pembayaran kartu kredit dengan 3DS
+                        $cardToken = $this->getCardToken($request);
+
+                        if (!$cardToken) {
+                            return redirect()->back()->with('error', 'Gagal mendapatkan token kartu kredit');
+                        }
+
+                        $transactionParams['credit_card'] = [
+                            'token_id' => $cardToken,
+                            'authentication' => true,
+                        ];
+
+                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
+
+                        if (isset($chargeResponse->redirect_url)) {
+                            // Simpan response data
+                            $order->update([
+                                'payment_details' => json_encode($chargeResponse),
+                                'payment_url' => $chargeResponse->redirect_url
+                            ]);
+
+                            // Redirect ke halaman 3DS
+                            return redirect($chargeResponse->redirect_url);
+                        }
+                        break;
+
+                    case 'bank_transfer':
+                        // Tambahkan detail bank transfer
+                        $transactionParams['payment_type'] = 'bank_transfer';
+                        $transactionParams['bank_transfer'] = [
+                            'bank' => $request->bank ?? 'bca', // Default ke BCA jika tidak diisi
+                        ];
+
+                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
+
+                        // Log response
+                        Log::info('Midtrans bank transfer response', [
+                            'response' => $chargeResponse
+                        ]);
+
+                        // Simpan response data
+                        $order->update([
+                            'payment_details' => json_encode($chargeResponse),
+                            'payment_url' => route('thank-you', $order->id)
+                        ]);
+
+                        // Bersihkan session
+                        session()->forget(['cart', 'voucher']);
+
+                        return redirect()->route('thank-you', $order->id);
+
+                    case 'gopay':
+                        // Tambahkan detail gopay
+                        $transactionParams['payment_type'] = 'gopay';
+
+                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
+
+                        // Log response
+                        Log::info('Midtrans GoPay response', [
+                            'response' => $chargeResponse
+                        ]);
+
+                        // Simpan response data
+                        $order->update([
+                            'payment_details' => json_encode($chargeResponse),
+                            'payment_url' => $chargeResponse->actions[0]->url ?? null
+                        ]);
+
+                        // Bersihkan session
+                        session()->forget(['cart', 'voucher']);
+
+                        // Redirect ke QR Code GoPay
+                        if (isset($chargeResponse->actions[0]->url)) {
+                            return redirect($chargeResponse->actions[0]->url);
+                        }
+
+                        return redirect()->route('thank-you', $order->id);
+
+                    default:
+                        // Default ke bank transfer BCA jika payment_type tidak dikenali
+                        Log::warning('Unrecognized payment type: ' . $paymentType . ', defaulting to bank_transfer BCA');
+
+                        $transactionParams['payment_type'] = 'bank_transfer';
+                        $transactionParams['bank_transfer'] = [
+                            'bank' => 'bca',
+                        ];
+
+                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
+
+                        // Simpan response data
+                        $order->update([
+                            'payment_details' => json_encode($chargeResponse),
+                            'payment_url' => isset($chargeResponse->va_numbers[0]->bank) ? route('thank-you', $order->id) : null
+                        ]);
+
+                        // Bersihkan session
+                        session()->forget(['cart', 'voucher']);
+
+                        return redirect()->route('thank-you', $order->id);
+                }
+            } catch (\Exception $e) {
+                // Log error
+                Log::error('Midtrans Error: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                // Hapus order jika gagal
+                $order->delete();
+
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
+            }
+        }
+
+        // Jika payment method manual (cash, transfer manual, dll)
+        // Bersihkan session
+        session()->forget(['cart', 'voucher']);
+
+        return redirect()->route('thank-you', $order->id);
+    }
+
+    /**
+     * Mendapatkan token kartu dari Midtrans
+     */
+    private function getCardToken(Request $request)
+    {
+        try {
+            $cardNumber = str_replace(' ', '', $request->card_number);
+
+            // Gunakan Midtrans API untuk mendapatkan token
+            $response = \Midtrans\CoreApi::cardToken(
+                $cardNumber,
+                $request->card_exp_month,
+                $request->card_exp_year,
+                $request->card_cvv
+            );
+
+            return $response->token_id;
+        } catch (\Exception $e) {
+            Log::error('Midtrans Card Token Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Handle callback notification dari Midtrans
+     */
+    public function handleNotification(Request $request)
+    {
+        try {
+            $notificationBody = json_decode($request->getContent(), true);
+            $transactionStatus = $notificationBody['transaction_status'];
+            $orderId = $notificationBody['order_id'];
+            $fraudStatus = $notificationBody['fraud_status'] ?? null;
+
+            // Ekstrak ID order dari format 'ORDER-{id}-{timestamp}'
+            preg_match('/ORDER-(\d+)-/', $orderId, $matches);
+            $orderIdExtracted = $matches[1] ?? null;
+
+            if (!$orderIdExtracted) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid order ID format']);
+            }
+
+            $order = Order::find($orderIdExtracted);
+
+            if (!$order) {
+                return response()->json(['status' => 'error', 'message' => 'Order not found']);
+            }
+
+            // Update status order berdasarkan status transaksi
+            if ($transactionStatus == 'capture') {
+                if ($fraudStatus == 'challenge') {
+                    $order->status = 'challenge';
+                } else if ($fraudStatus == 'accept') {
+                    $order->status = 'completed';
+                }
+            } else if ($transactionStatus == 'settlement') {
+                $order->status = 'processing';
+            } else if ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
+                $order->status = 'failed';
+            } else if ($transactionStatus == 'pending') {
+                $order->status = 'pending';
+            }
+
+            $order->payment_details = json_encode($notificationBody);
+            $order->save();
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+        Log::error('Midtrans Notification Error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Handle payment finish redirect from Midtrans
+     */
+    public function finishPayment(Request $request)
+    {
+        $orderId = $request->order_id;
+
+        // Extract the no_order from format '{no_order}-{timestamp}'
+        $orderIdParts = explode('-', $orderId);
+        $noOrder = $orderIdParts[0];
+
+        $order = Order::where('no_order', $noOrder)->first();
+
+        if (!$order) {
+            return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
+        }
+
+        // Check transaction status from Midtrans
+        try {
+            $status = Transaction::status($orderId);
+
+            // Update order status and payment details
+            $order->update([
+                'status' => $this->mapMidtransStatus($status->transaction_status ?? 'pending'),
+                'payment_details' => json_encode($status)
+            ]);
+
+            // Redirect to thank you page
+            return redirect()->route('thank-you', $order->id)
+                ->with('status', 'Pembayaran berhasil diproses');
+        } catch (\Exception $e) {
+            Log::error('Finish Payment Error: ' . $e->getMessage());
+        }
+
+        return redirect()->route('thank-you', $order->id);
+    }
+
+    /**
+     * Handle payment unfinish redirect from Midtrans
+     */
+    public function unfinishPayment(Request $request)
+    {
+        $orderId = $request->order_id;
+
+        // Extract the no_order from format '{no_order}-{timestamp}'
+        $orderIdParts = explode('-', $orderId);
+        $noOrder = $orderIdParts[0];
+
+        $order = Order::where('no_order', $noOrder)->first();
+
+        if (!$order) {
+            return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
+        }
+
+        return redirect()->route('thank-you', $order->id)
+            ->with('warning', 'Pembayaran belum selesai. Silakan selesaikan pembayaran Anda.');
+    }
+
+    /**
+     * Handle payment error redirect from Midtrans
+     */
+    public function errorPayment(Request $request)
+    {
+        $orderId = $request->order_id;
+
+        // Extract the no_order from format '{no_order}-{timestamp}'
+        $orderIdParts = explode('-', $orderId);
+        $noOrder = $orderIdParts[0];
+
+        $order = Order::where('no_order', $noOrder)->first();
+
+        if (!$order) {
+            return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
+        }
+
+        return redirect()->route('thank-you', $order->id)
+            ->with('error', 'Terjadi kesalahan dalam pembayaran. Silakan coba lagi atau hubungi kami.');
+    }
+
+    /**
+     * Cek status transaksi di Midtrans
+     */
+    public function checkTransactionStatus($orderId)
+    {
+        try {
+            $order = Order::findOrFail($orderId);
+
+            if (!$order->transaction_id) {
+                return redirect()->back()->with('error', 'ID Transaksi tidak ditemukan');
+            }
+
+            $status = Transaction::status($order->transaction_id);
+
+            // Update status order
+            $order->payment_details = json_encode($status);
+
+            if ((is_object($status) && ($status->transaction_status == 'settlement' || $status->transaction_status == 'capture')) ||
+                (is_array($status) && isset($status['transaction_status']) && ($status['transaction_status'] == 'settlement' || $status['transaction_status'] == 'capture'))) {
+                $order->status = 'processing';
+            } else if (is_object($status) && $status->transaction_status == 'pending') {
+                $order->status = 'pending';
+            } else if (is_object($status) && in_array($status->transaction_status, ['cancel', 'deny', 'expire'])) {
+                $order->status = 'failed';
+            } else if (is_array($status) && isset($status['transaction_status'])) {
+                if ($status['transaction_status'] == 'pending') {
+                    $order->status = 'pending';
+                } else if (in_array($status['transaction_status'], ['cancel', 'deny', 'expire'])) {
+                    $order->status = 'failed';
+                }
+            }
+
+            $order->save();
+
+            return redirect()->route('thank-you', $order->id)->with('status', 'Status pembayaran berhasil diperbarui');
+        } catch (\Exception $e) {
+            Log::error('Check Transaction Status Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memeriksa status transaksi: ' . $e->getMessage());
+        }
+    }
 }
+
+

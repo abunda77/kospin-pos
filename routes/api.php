@@ -10,6 +10,9 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductUserController;
 use App\Http\Controllers\Api\CheckoutUserController;
+use App\Http\Controllers\Api\PaymentWebhookController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Api\WebhookController;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -35,3 +38,11 @@ Route::get('payment-methods-public', [CheckoutUserController::class, 'getPayment
 Route::get('check-member/{nik}', [CheckoutUserController::class, 'checkMember']);
 Route::post('checkout', [CheckoutUserController::class, 'process']);
 Route::get('orders-public/{orderId}', [CheckoutUserController::class, 'getOrderDetail']);
+
+// DEPRECATED: Midtrans notification handler dalam CheckoutController
+// Route::post('payment/notification/midtrans', [CheckoutController::class, 'handleNotification']);
+
+// Midtrans notification handler menggunakan WebhookController yang lebih lengkap
+Route::post('/midtrans/notification', [WebhookController::class, 'handle']);
+
+

@@ -42,16 +42,30 @@ class Order extends Model
 
     protected $fillable = [
         'payment_method_id',
-        'user_id',
+        'anggota_id',
         'name',
+        'email',
+        'phone',
         'whatsapp',
         'address',
+        'birthday',
+        'no_order',
         'total_price',
+        'discount',
+        'note',
+        'status',
         'subtotal_amount',
         'discount_amount',
         'total_amount',
         'voucher_id',
-        'status'
+        'transaction_id',
+        'payment_url',
+        'payment_details',
+    ];
+
+    protected $casts = [
+        'payment_details' => 'json',
+        'birthday' => 'date',
     ];
 
     public function paymentMethod(): BelongsTo
@@ -84,3 +98,4 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 }
+

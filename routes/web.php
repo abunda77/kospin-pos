@@ -43,13 +43,27 @@ Route::post('/cart/add/{product}', [CartController::class, 'add'])
     ->name('cart.add');
 Route::delete('/cart/remove/{product}', [CartController::class, 'remove'])
     ->name('cart.remove');
-Route::get('/checkout', [CheckoutController::class, 'index'])
-    ->name('checkout');
-Route::post('/checkout/process', [CheckoutController::class, 'process'])
-    ->name('checkout.process');
+// Checkout routes
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout/process-payment', [CheckoutController::class, 'processPayment'])->name('checkout.process-payment');
+Route::get('/thank-you/{order}', [CheckoutController::class, 'thankYou'])->name('thank-you');
+// Route::get('/generate-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('checkout.generate-pdf');
+Route::get('/generate-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('order.pdf');
+Route::get('/check-status/{orderId}', [CheckoutController::class, 'checkTransactionStatus'])->name('checkout.check-status');
 Route::delete('/cart/{product}', [CartController::class, 'delete'])->name('cart.delete');
 Route::get('/check-member/{nik}', [CheckoutController::class, 'checkMember'])->name('checkout.check-member');
-Route::get('/thank-you/{order}', [CheckoutController::class, 'thankYou'])->name('thank-you');
+Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+// Route::get('/order-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('order.pdf');
 
-// Order PDF route
-Route::get('/order/{order}/pdf', [CheckoutController::class, 'generatePdf'])->name('order.pdf');
+// Midtrans redirect URL handlers
+Route::get('/payment/finish', [CheckoutController::class, 'finishPayment'])->name('payment.finish');
+Route::get('/payment/unfinish', [CheckoutController::class, 'unfinishPayment'])->name('payment.unfinish');
+Route::get('/payment/error', [CheckoutController::class, 'errorPayment'])->name('payment.error');
+
+
+
+
+
+
+
+

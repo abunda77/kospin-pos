@@ -14,9 +14,18 @@ class PaymentMethod extends Model
         'name',
         'image',
         'is_cash',
+        'gateway',
+        'gateway_config',
+        'is_active',
     ];
 
     protected $appends = ['image_url'];
+    
+    protected $casts = [
+        'gateway_config' => 'json',
+        'is_active' => 'boolean',
+        'is_cash' => 'boolean',
+    ];
 
     public function orders(): HasMany
     {
@@ -28,3 +37,5 @@ class PaymentMethod extends Model
         return $this->image ? url('storage/'. $this->image) : null;
     }
 }
+
+

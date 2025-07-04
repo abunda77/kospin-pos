@@ -10,8 +10,8 @@ class CartController extends Controller
 {
     public function index()
     {
-        $paymentMethods = PaymentMethod::where('is_cash', true)->get();
-        return view('cart', compact('paymentMethods'));
+        // Tidak perlu lagi mengambil payment methods karena sudah dihapus dari view
+        return view('cart');
     }
 
     public function add(Product $product)
@@ -45,3 +45,4 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Produk berhasil dihapus dari keranjang!');
     }
 }
+
