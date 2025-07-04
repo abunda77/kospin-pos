@@ -82,7 +82,7 @@ return [
 
     'middleware' => [
         'web',
-        SecureDocsAccess::class,
+        //SecureDocsAccess::class,
     ],
 
     'extensions' => [],
