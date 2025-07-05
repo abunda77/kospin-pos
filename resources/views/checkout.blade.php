@@ -455,9 +455,11 @@
 
                 let isValid = true;
                 requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
+                    // Hanya validasi field yang terlihat (tidak di dalam parent yang display: none)
+                    if (field.offsetParent !== null && !field.value.trim()) {
                         isValid = false;
                         field.classList.add('border-red-500');
+                        console.log('Validation failed for visible field:', field.name);
                     } else {
                         field.classList.remove('border-red-500');
                     }

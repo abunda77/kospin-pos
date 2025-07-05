@@ -181,6 +181,9 @@ class CheckoutController extends Controller
         $order = Order::with(['orderProducts.product', 'paymentMethod'])
             ->findOrFail($orderId);
 
+        // Kosongkan keranjang saat pengguna sampai di halaman thank-you
+        session()->forget(['cart', 'voucher']);
+
         // Hitung ulang subtotal dari order products
         $subtotal = $order->orderProducts->sum(function ($item) {
             return $item->quantity * $item->unit_price;
@@ -275,9 +278,9 @@ class CheckoutController extends Controller
             $rules = array_merge($baseRules, $memberRules);
         } else {
             $nonMemberRules = [
-                'name' => 'required|string|max:255',
-                'whatsapp' => 'required|string|max:20',
-                'address' => 'required|string',
+            'name' => 'required|string|max:255',
+            'whatsapp' => 'required|string|max:20',
+            'address' => 'required|string',
             ];
             $rules = array_merge($baseRules, $nonMemberRules);
         }
@@ -355,9 +358,6 @@ class CheckoutController extends Controller
             }
         }
 
-        // Bersihkan session
-        session()->forget(['cart', 'voucher']);
-
         // Jika payment method menggunakan Midtrans
         if ($paymentMethod->gateway === 'midtrans') {
             try {
@@ -389,7 +389,7 @@ class CheckoutController extends Controller
                 }
 
                 // Buat order_id untuk Midtrans
-                $midtransOrderId = 'ORDER-' . $order->id . '-' . time();
+                $midtransOrderId = $order->id . '-' . substr(time(), -5);
 
                 // Siapkan parameter transaksi
                 $transactionParams = [
@@ -530,7 +530,7 @@ class CheckoutController extends Controller
                 ]);
 
                 // Redirect kembali dengan pesan error
-                return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Gagal memulai pembayaran dengan Midtrans. Silakan coba lagi atau pilih metode pembayaran lain. Error: ' . $e->getMessage());
             }
         } else {
             // Untuk metode pembayaran non-gateway (misalnya transfer manual)
@@ -626,20 +626,25 @@ class CheckoutController extends Controller
     public function finishPayment(Request $request)
     {
         $orderId = $request->order_id;
+        $orderUuid = $orderId;
 
-        // Extract the no_order from format '{no_order}-{timestamp}'
-        $orderIdParts = explode('-', $orderId);
-        $noOrder = $orderIdParts[0];
+        $lastHyphenPos = strrpos($orderId, '-');
+        if ($lastHyphenPos !== false && strlen(substr($orderId, $lastHyphenPos + 1)) < 10) {
+            $orderUuid = substr($orderId, 0, $lastHyphenPos);
+        }
 
-        $order = Order::where('no_order', $noOrder)->first();
+        $order = Order::find($orderUuid);
 
         if (!$order) {
             return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
         }
 
+        // Kosongkan keranjang setelah pembayaran dikonfirmasi selesai
+        session()->forget(['cart', 'voucher']);
+
         // Check transaction status from Midtrans
         try {
-            $status = Transaction::status($orderId);
+            $status = Transaction::status($order->transaction_id ?? $orderId);
 
             // Update order status and payment details
             $order->update([
@@ -663,12 +668,14 @@ class CheckoutController extends Controller
     public function unfinishPayment(Request $request)
     {
         $orderId = $request->order_id;
+        $orderUuid = $orderId;
 
-        // Extract the no_order from format '{no_order}-{timestamp}'
-        $orderIdParts = explode('-', $orderId);
-        $noOrder = $orderIdParts[0];
+        $lastHyphenPos = strrpos($orderId, '-');
+        if ($lastHyphenPos !== false && strlen(substr($orderId, $lastHyphenPos + 1)) < 10) {
+            $orderUuid = substr($orderId, 0, $lastHyphenPos);
+        }
 
-        $order = Order::where('no_order', $noOrder)->first();
+        $order = Order::find($orderUuid);
 
         if (!$order) {
             return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
@@ -684,12 +691,14 @@ class CheckoutController extends Controller
     public function errorPayment(Request $request)
     {
         $orderId = $request->order_id;
+        $orderUuid = $orderId;
 
-        // Extract the no_order from format '{no_order}-{timestamp}'
-        $orderIdParts = explode('-', $orderId);
-        $noOrder = $orderIdParts[0];
+        $lastHyphenPos = strrpos($orderId, '-');
+        if ($lastHyphenPos !== false && strlen(substr($orderId, $lastHyphenPos + 1)) < 10) {
+            $orderUuid = substr($orderId, 0, $lastHyphenPos);
+        }
 
-        $order = Order::where('no_order', $noOrder)->first();
+        $order = Order::find($orderUuid);
 
         if (!$order) {
             return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
