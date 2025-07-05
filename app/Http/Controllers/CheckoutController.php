@@ -388,8 +388,8 @@ class CheckoutController extends Controller
                     ];
                 }
 
-                // Buat order_id untuk Midtrans
-                $midtransOrderId = $order->id . '-' . substr(time(), -5);
+                // Buat order_id untuk Midtrans menggunakan no_order
+                $midtransOrderId = $order->no_order;
 
                 // Siapkan parameter transaksi
                 $transactionParams = [
@@ -578,20 +578,13 @@ class CheckoutController extends Controller
         try {
             $notificationBody = json_decode($request->getContent(), true);
             $transactionStatus = $notificationBody['transaction_status'];
-            $orderId = $notificationBody['order_id'];
+            $midtransOrderId = $notificationBody['order_id'];
             $fraudStatus = $notificationBody['fraud_status'] ?? null;
 
-            // Ekstrak ID order dari format 'ORDER-{id}-{timestamp}'
-            preg_match('/ORDER-(\d+)-/', $orderId, $matches);
-            $orderIdExtracted = $matches[1] ?? null;
-
-            if (!$orderIdExtracted) {
-                return response()->json(['status' => 'error', 'message' => 'Invalid order ID format']);
-            }
-
-            $order = Order::find($orderIdExtracted);
+            $order = Order::where('no_order', $midtransOrderId)->first();
 
             if (!$order) {
+                Log::error('Midtrans notification: Order not found with no_order: ' . $midtransOrderId);
                 return response()->json(['status' => 'error', 'message' => 'Order not found']);
             }
 
@@ -625,15 +618,10 @@ class CheckoutController extends Controller
      */
     public function finishPayment(Request $request)
     {
-        $orderId = $request->order_id;
-        $orderUuid = $orderId;
+        $midtransOrderId = $request->order_id;
 
-        $lastHyphenPos = strrpos($orderId, '-');
-        if ($lastHyphenPos !== false && strlen(substr($orderId, $lastHyphenPos + 1)) < 10) {
-            $orderUuid = substr($orderId, 0, $lastHyphenPos);
-        }
-
-        $order = Order::find($orderUuid);
+        // Cari order berdasarkan no_order, karena itu yang kita kirim ke Midtrans
+        $order = Order::where('no_order', $midtransOrderId)->first();
 
         if (!$order) {
             return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
@@ -644,7 +632,8 @@ class CheckoutController extends Controller
 
         // Check transaction status from Midtrans
         try {
-            $status = Transaction::status($order->transaction_id ?? $orderId);
+            // Gunakan ID yang sama (no_order) untuk mengecek status
+            $status = Transaction::status($midtransOrderId);
 
             // Update order status and payment details
             $order->update([
@@ -652,7 +641,7 @@ class CheckoutController extends Controller
                 'payment_details' => json_encode($status)
             ]);
 
-            // Redirect to thank you page
+            // Redirect to thank you page menggunakan UUID
             return redirect()->route('thank-you', $order->id)
                 ->with('status', 'Pembayaran berhasil diproses');
         } catch (\Exception $e) {
@@ -667,15 +656,9 @@ class CheckoutController extends Controller
      */
     public function unfinishPayment(Request $request)
     {
-        $orderId = $request->order_id;
-        $orderUuid = $orderId;
+        $midtransOrderId = $request->order_id;
 
-        $lastHyphenPos = strrpos($orderId, '-');
-        if ($lastHyphenPos !== false && strlen(substr($orderId, $lastHyphenPos + 1)) < 10) {
-            $orderUuid = substr($orderId, 0, $lastHyphenPos);
-        }
-
-        $order = Order::find($orderUuid);
+        $order = Order::where('no_order', $midtransOrderId)->first();
 
         if (!$order) {
             return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
@@ -690,15 +673,9 @@ class CheckoutController extends Controller
      */
     public function errorPayment(Request $request)
     {
-        $orderId = $request->order_id;
-        $orderUuid = $orderId;
+        $midtransOrderId = $request->order_id;
 
-        $lastHyphenPos = strrpos($orderId, '-');
-        if ($lastHyphenPos !== false && strlen(substr($orderId, $lastHyphenPos + 1)) < 10) {
-            $orderUuid = substr($orderId, 0, $lastHyphenPos);
-        }
-
-        $order = Order::find($orderUuid);
+        $order = Order::where('no_order', $midtransOrderId)->first();
 
         if (!$order) {
             return redirect()->route('home')->with('error', 'Pesanan tidak ditemukan');
