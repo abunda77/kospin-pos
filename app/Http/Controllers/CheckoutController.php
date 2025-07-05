@@ -259,18 +259,35 @@ class CheckoutController extends Controller
 
     public function processPayment(Request $request)
     {
-        // Validasi input
-        $request->validate([
+        $isMember = $request->input('is_member') === '1';
+
+        $baseRules = [
             'payment_method_id' => 'required|exists:payment_methods,id',
-            'name' => 'required|string|max:255',
-            'whatsapp' => 'required|string|max:20',
-            'address' => 'required|string',
-        ]);
+            'is_member' => 'required|in:0,1',
+        ];
+
+        if ($isMember) {
+            $memberRules = [
+                'member_id' => 'required|exists:anggotas,id',
+                'whatsapp' => 'required|string|max:20',
+                'address' => 'required|string',
+            ];
+            $rules = array_merge($baseRules, $memberRules);
+        } else {
+            $nonMemberRules = [
+                'name' => 'required|string|max:255',
+                'whatsapp' => 'required|string|max:20',
+                'address' => 'required|string',
+            ];
+            $rules = array_merge($baseRules, $nonMemberRules);
+        }
+
+        $request->validate($rules);
 
         // Log untuk debugging
         Log::info('Payment request received', [
             'payment_method_id' => $request->payment_method_id,
-            'payment_type' => $request->payment_type ?? 'not set',
+            'is_member' => $isMember,
             'all_data' => $request->all()
         ]);
 
@@ -294,19 +311,31 @@ class CheckoutController extends Controller
         // Ambil payment method
         $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
 
-        // Buat order dengan status pending
-        $order = Order::create([
+        // Siapkan data order
+        $orderData = [
             'payment_method_id' => $request->payment_method_id,
-            'name' => $request->name,
-            'whatsapp' => $request->whatsapp,
-            'address' => $request->address,
             'subtotal_amount' => $subtotal,
             'discount_amount' => $discount,
             'total_amount' => $total,
             'total_price' => $total,
             'voucher_id' => $voucher ? $voucher['id'] : null,
             'status' => 'pending'
-        ]);
+        ];
+
+        if ($isMember) {
+            $member = Anggota::find($request->member_id);
+            $orderData['name'] = $member->nama_lengkap ?? $member->nama; // Fallback ke 'nama'
+            $orderData['whatsapp'] = $request->whatsapp;
+            $orderData['address'] = $request->address;
+            $orderData['anggota_id'] = $member->id; // Mengasumsikan ada kolom anggota_id
+        } else {
+            $orderData['name'] = $request->name;
+            $orderData['whatsapp'] = $request->whatsapp;
+            $orderData['address'] = $request->address;
+        }
+
+        // Buat order dengan status pending
+        $order = Order::create($orderData);
 
         // Simpan order products
         foreach ($cart as $id => $item) {
@@ -325,6 +354,9 @@ class CheckoutController extends Controller
                 $voucherModel->decrement('stok_voucher');
             }
         }
+
+        // Bersihkan session
+        session()->forget(['cart', 'voucher']);
 
         // Jika payment method menggunakan Midtrans
         if ($paymentMethod->gateway === 'midtrans') {
@@ -357,7 +389,7 @@ class CheckoutController extends Controller
                 }
 
                 // Buat order_id untuk Midtrans
-                $midtransOrderId = $order->no_order . '-' . substr(time(), -4);
+                $midtransOrderId = 'ORDER-' . $order->id . '-' . time();
 
                 // Siapkan parameter transaksi
                 $transactionParams = [
@@ -366,10 +398,10 @@ class CheckoutController extends Controller
                         'gross_amount' => $total,
                     ],
                     'customer_details' => [
-                        'first_name' => $request->name,
-                        'phone' => $request->whatsapp,
+                        'first_name' => $order->name,
+                        'phone' => $order->whatsapp,
                         'billing_address' => [
-                            'address' => $request->address,
+                            'address' => $order->address,
                         ],
                     ],
                     'item_details' => $items,
@@ -443,9 +475,7 @@ class CheckoutController extends Controller
                             'payment_url' => route('thank-you', $order->id)
                         ]);
 
-                        // Bersihkan session
-                        session()->forget(['cart', 'voucher']);
-
+                        // Redirect ke halaman thank you
                         return redirect()->route('thank-you', $order->id);
 
                     case 'gopay':
@@ -464,9 +494,6 @@ class CheckoutController extends Controller
                             'payment_details' => json_encode($chargeResponse),
                             'payment_url' => $chargeResponse->actions[0]->url ?? null
                         ]);
-
-                        // Bersihkan session
-                        session()->forget(['cart', 'voucher']);
 
                         // Redirect ke QR Code GoPay
                         if (isset($chargeResponse->actions[0]->url)) {
@@ -492,28 +519,31 @@ class CheckoutController extends Controller
                             'payment_url' => isset($chargeResponse->va_numbers[0]->bank) ? route('thank-you', $order->id) : null
                         ]);
 
-                        // Bersihkan session
-                        session()->forget(['cart', 'voucher']);
-
+                        // Redirect ke halaman thank you
                         return redirect()->route('thank-you', $order->id);
                 }
             } catch (\Exception $e) {
                 // Log error
-                Log::error('Midtrans Error: ' . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString()
+                Log::error('Midtrans payment error: ' . $e->getMessage(), [
+                    'exception' => $e,
+                    'order_id' => $order->id
                 ]);
 
-                // Hapus order jika gagal
-                $order->delete();
-
+                // Redirect kembali dengan pesan error
                 return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
             }
+        } else {
+            // Untuk metode pembayaran non-gateway (misalnya transfer manual)
+            Log::info('Non-gateway payment method used', [
+                'payment_method' => $paymentMethod->name,
+                'order_id' => $order->id
+            ]);
+
+            // Redirect ke halaman thank you
+            return redirect()->route('thank-you', $order->id);
         }
 
-        // Jika payment method manual (cash, transfer manual, dll)
-        // Bersihkan session
-        session()->forget(['cart', 'voucher']);
-
+        // Fallback redirect jika tidak ada return sebelumnya
         return redirect()->route('thank-you', $order->id);
     }
 

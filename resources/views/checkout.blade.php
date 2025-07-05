@@ -5,6 +5,17 @@
     <div class="p-6 mx-auto max-w-4xl bg-white rounded-lg shadow-md">
         <h1 class="mb-6 text-2xl font-bold">Checkout</h1>
 
+        @if ($errors->any())
+            <div class="px-4 py-3 mb-4 text-red-700 bg-red-100 rounded border border-red-400" role="alert">
+                <strong class="font-bold">Terjadi kesalahan:</strong>
+                <ul class="mt-2 list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if (session('error'))
             <div class="px-4 py-3 mb-4 text-red-700 bg-red-100 rounded border border-red-400">
                 {{ session('error') }}
@@ -50,9 +61,9 @@
 
                 <form action="{{ route('checkout.process-payment') }}" method="POST" id="payment-form">
                     @csrf
+                    <input type="hidden" name="is_member" id="is_member_input" value="0">
                     <!-- Form Non Anggota -->
                     <div id="non-member-form">
-                        <input type="hidden" name="is_member" value="0">
                         <div class="mb-4">
                             <label for="name" class="block mb-1 text-sm font-medium text-gray-700">Nama Lengkap</label>
                             <input type="text" name="name" id="name" class="px-3 py-2 w-full rounded-md border border-gray-300" required>
@@ -69,7 +80,6 @@
 
                     <!-- Form Anggota -->
                     <div id="member-form" style="display: none;">
-                        <input type="hidden" name="is_member" value="1">
                         <input type="hidden" name="member_id" id="member_id">
 
                         <div class="mb-4">
@@ -217,12 +227,9 @@
                 </div>
 
                 <button type="submit"
-                        x-data="{ loading: false }"
-                        x-on:click="loading = true"
-                        x-bind:class="{ 'opacity-70 cursor-wait': loading }"
                         class="px-4 py-2 mt-4 w-full font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 touch-manipulation">
-                    <span x-show="!loading">Bayar Sekarang</span>
-                    <span x-show="loading" class="flex justify-center items-center">
+                    <span id="btn-text">Bayar Sekarang</span>
+                    <span id="btn-loading" style="display: none;" class="flex justify-center items-center">
                         <svg class="inline mr-2 w-4 h-4 animate-spin" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -238,6 +245,20 @@
 
 @push('scripts')
 <script>
+    // Fungsi untuk mengaktifkan/menonaktifkan input form, dideklarasikan secara global
+    function toggleFormState(form, isActive) {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            // Khusus untuk input NIK/No.WA di form member, jangan disable jika read-only
+            if (input.id === 'member-nik' && input.hasAttribute('readonly')) {
+                return;
+            }
+            input.disabled = !isActive;
+        });
+    }
+
+    let nonMemberForm, memberForm; // Declare globally
+
     document.addEventListener('DOMContentLoaded', function() {
         const paymentMethodOptions = document.querySelectorAll('.payment-method-option');
         const paymentDetails = document.getElementById('payment-details');
@@ -247,8 +268,14 @@
         const btnNonMember = document.getElementById('btn-non-member');
         const btnMember = document.getElementById('btn-member');
         const memberCheckForm = document.getElementById('member-check-form');
-        const nonMemberForm = document.getElementById('non-member-form');
-        const memberForm = document.getElementById('member-form');
+        nonMemberForm = document.getElementById('non-member-form');
+        memberForm = document.getElementById('member-form');
+
+        // Initial state: Non-member form is active
+        toggleFormState(nonMemberForm, true);
+        toggleFormState(memberForm, false);
+        // Pastikan input cek NIK dinonaktifkan pada awalnya
+        document.getElementById('check-nik').disabled = true;
 
         btnNonMember.addEventListener('click', function() {
             btnNonMember.classList.add('bg-green-500', 'text-white');
@@ -259,6 +286,13 @@
             memberCheckForm.style.display = 'none';
             memberForm.style.display = 'none';
             nonMemberForm.style.display = 'block';
+
+            // Activate non-member form, deactivate member form
+            toggleFormState(nonMemberForm, true);
+            toggleFormState(memberForm, false);
+            document.getElementById('check-nik').disabled = true;
+
+            document.getElementById('is_member_input').value = '0';
         });
 
         btnMember.addEventListener('click', function() {
@@ -269,6 +303,13 @@
 
             memberCheckForm.style.display = 'block';
             nonMemberForm.style.display = 'none';
+
+            // Deactivate non-member form. Member form is still inactive until check.
+            toggleFormState(nonMemberForm, false);
+            toggleFormState(memberForm, false); // Keep member form disabled
+            document.getElementById('check-nik').disabled = false;
+
+            document.getElementById('is_member_input').value = '1';
         });
 
         // Credit Card form elements
@@ -401,6 +442,46 @@
                 e.target.value = value;
             });
         }
+
+        // Fix form submission
+        const paymentForm = document.getElementById('payment-form');
+        if (paymentForm) {
+            paymentForm.addEventListener('submit', function(e) {
+                console.log('Validating form before submission...');
+
+                // Validasi form sebelum submit
+                const activeForm = nonMemberForm.style.display === 'block' ? nonMemberForm : memberForm;
+                const requiredFields = activeForm.querySelectorAll('input[required], textarea[required]');
+
+                let isValid = true;
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.classList.add('border-red-500');
+                    } else {
+                        field.classList.remove('border-red-500');
+                    }
+                });
+
+                // Validasi metode pembayaran
+                const paymentMethodSelected = document.querySelector('input[name="payment_method_id"]:checked');
+                if (!paymentMethodSelected) {
+                    isValid = false;
+                    alert('Silakan pilih metode pembayaran');
+                }
+
+                if (!isValid) {
+                    console.log('Form is invalid. Preventing submission.');
+                    e.preventDefault(); // Prevent submission ONLY if invalid
+                } else {
+                    console.log('Form is valid. Showing loading state and submitting.');
+                    // Show loading state
+                    document.getElementById('btn-text').style.display = 'none';
+                    document.getElementById('btn-loading').style.display = 'flex';
+                    // Allow the form to submit naturally
+                }
+            });
+        }
     });
 
     // Fungsi untuk mengecek member berdasarkan NIK
@@ -432,13 +513,14 @@
 
                     // Isi form member dengan data dari server
                     document.getElementById('member-nik').value = data.member.nik || nik;
-                    document.getElementById('member-name').value = data.member.nama || '';
+                    document.getElementById('member-name').value = data.member.nama_lengkap || '';
                     document.getElementById('member-whatsapp').value = data.member.no_hp || '';
                     document.getElementById('member-address').value = data.member.alamat || '';
                     document.getElementById('member_id').value = data.member.id || '';
 
                     // Tampilkan form member
                     document.getElementById('member-form').style.display = 'block';
+                    toggleFormState(memberForm, true);
                 } else {
                     // Member tidak ditemukan
                     notification.textContent = 'Anggota tidak ditemukan. Silahkan daftar sebagai non-anggota.';
@@ -447,6 +529,7 @@
 
                     // Sembunyikan form member
                     document.getElementById('member-form').style.display = 'none';
+                    toggleFormState(memberForm, false);
                 }
             })
             .catch(error => {
@@ -454,6 +537,12 @@
                 notification.textContent = 'Terjadi kesalahan saat memeriksa data. Silahkan coba lagi.';
                 notification.classList.remove('bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
                 notification.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-400');
+
+                // Sembunyikan dan nonaktifkan form anggota jika terjadi kesalahan
+                if (memberForm) {
+                    memberForm.style.display = 'none';
+                    toggleFormState(memberForm, false);
+                }
             });
     }
 </script>
