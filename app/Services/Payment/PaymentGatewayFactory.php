@@ -6,16 +6,18 @@ use Exception;
 
 class PaymentGatewayFactory
 {
-    public function make($gateway, $config = [])
+    public function make(string $gateway): PaymentGatewayInterface
     {
-        switch ($gateway) {
+        switch (strtolower($gateway)) {
             case 'midtrans':
+                $config = config('services.midtrans');
                 return new MidtransGateway($config);
             case 'xendit':
+                $config = config('services.xendit');
                 return new XenditGateway($config);
             // Tambahkan gateway lain sesuai kebutuhan
             default:
-                throw new Exception("Payment gateway tidak didukung: {$gateway}");
+                throw new \InvalidArgumentException("Unsupported payment gateway [{$gateway}]");
         }
     }
 }

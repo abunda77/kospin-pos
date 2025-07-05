@@ -7,6 +7,7 @@ use App\Models\OrderProduct;
 use App\Models\PaymentMethod;
 use App\Models\Anggota;
 use App\Models\VoucherDiskon;
+use App\Services\Payment\PaymentGatewayFactory;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
@@ -16,16 +17,11 @@ use Midtrans\Transaction;
 
 class CheckoutController extends Controller
 {
-    public function __construct()
-    {
-        // Set konfigurasi Midtrans
-        Config::$serverKey = config('services.midtrans.server_key');
-        Config::$isProduction = config('services.midtrans.is_production', false);
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
+    protected $paymentGatewayFactory;
 
-        // Gunakan URL redirect dari konfigurasi route
-        Config::$overrideNotifUrl = route('api.midtrans.notification');
+    public function __construct(PaymentGatewayFactory $paymentGatewayFactory)
+    {
+        $this->paymentGatewayFactory = $paymentGatewayFactory;
     }
 
     public function index(Request $request)
@@ -207,19 +203,19 @@ class CheckoutController extends Controller
             ];
         }
 
-        // Jika menggunakan Midtrans, cek status transaksi
-        if ($order->paymentMethod && $order->paymentMethod->gateway === 'midtrans' && $order->transaction_id) {
+        // Jika menggunakan gateway, cek status transaksi
+        if ($order->paymentMethod && $order->paymentMethod->gateway && $order->transaction_id) {
             try {
-                $status = Transaction::status($order->transaction_id);
+                $gateway = $this->paymentGatewayFactory->make($order->paymentMethod->gateway);
+                $status = $gateway->getTransactionStatus($order->transaction_id);
 
-                // Update status dan payment details jika ada perubahan
                 if ((is_object($status) && isset($status->transaction_status)) ||
                     (is_array($status) && isset($status['transaction_status']))) {
 
                     $transactionStatus = is_object($status) ? $status->transaction_status : $status['transaction_status'];
 
                     $order->update([
-                        'status' => $this->mapMidtransStatus($transactionStatus),
+                        'status' => $this->mapMidtransStatus($transactionStatus), // This mapping could be gateway-specific
                         'payment_details' => json_encode($status)
                     ]);
                 }
@@ -358,16 +354,12 @@ class CheckoutController extends Controller
             }
         }
 
-        // Jika payment method menggunakan Midtrans
-        if ($paymentMethod->gateway === 'midtrans') {
+        // Jika payment method menggunakan gateway
+        if ($paymentMethod->gateway) {
             try {
-                // Set konfigurasi Midtrans
-                \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
-                \Midtrans\Config::$isProduction = (bool) config('services.midtrans.is_production');
-                \Midtrans\Config::$isSanitized = true;
-                \Midtrans\Config::$is3ds = true;
+                $gateway = $this->paymentGatewayFactory->make($paymentMethod->gateway);
 
-                // Siapkan item details untuk Midtrans
+                // Siapkan item details
                 $items = [];
                 foreach ($cart as $id => $item) {
                     $items[] = [
@@ -378,7 +370,6 @@ class CheckoutController extends Controller
                     ];
                 }
 
-                // Tambahkan item diskon jika ada
                 if ($discount > 0) {
                     $items[] = [
                         'id' => 'DISCOUNT',
@@ -388,22 +379,22 @@ class CheckoutController extends Controller
                     ];
                 }
 
-                // Buat order_id untuk Midtrans menggunakan no_order
-                $midtransOrderId = $order->no_order;
+                $gatewayOrderId = $order->no_order;
 
-                // Siapkan parameter transaksi
+                $customerDetails = [
+                    'first_name' => $order->name,
+                    'phone' => $order->whatsapp,
+                    'billing_address' => [
+                        'address' => $order->address,
+                    ],
+                ];
+
                 $transactionParams = [
                     'transaction_details' => [
-                        'order_id' => $midtransOrderId,
+                        'order_id' => $gatewayOrderId,
                         'gross_amount' => $total,
                     ],
-                    'customer_details' => [
-                        'first_name' => $order->name,
-                        'phone' => $order->whatsapp,
-                        'billing_address' => [
-                            'address' => $order->address,
-                        ],
-                    ],
+                    'customer_details' => $customerDetails,
                     'item_details' => $items,
                     'callbacks' => [
                         'finish' => route('payment.finish'),
@@ -412,125 +403,70 @@ class CheckoutController extends Controller
                     ]
                 ];
 
-                // Update transaction_id di order
-                $order->update([
-                    'transaction_id' => $midtransOrderId
-                ]);
+                $order->update(['transaction_id' => $gatewayOrderId]);
 
-                // Pastikan payment_type tidak null dengan default bank_transfer
+                // Logika spesifik per gateway untuk payment type, bisa di-refactor lebih lanjut
                 $paymentType = $request->input('payment_type', 'bank_transfer');
-
-                // Log payment type untuk debugging
-                Log::info('Processing payment with type: ' . $paymentType, [
-                    'payment_type_from_form' => $request->payment_type,
-                    'payment_type_used' => $paymentType
-                ]);
-
-                // Proses berdasarkan jenis pembayaran
-                switch ($paymentType) {
-                    case 'credit_card':
-                        // Proses pembayaran kartu kredit dengan 3DS
-                        $cardToken = $this->getCardToken($request);
-
-                        if (!$cardToken) {
-                            return redirect()->back()->with('error', 'Gagal mendapatkan token kartu kredit');
-                        }
-
-                        $transactionParams['credit_card'] = [
-                            'token_id' => $cardToken,
-                            'authentication' => true,
-                        ];
-
-                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
-
-                        if (isset($chargeResponse->redirect_url)) {
-                            // Simpan response data
-                            $order->update([
-                                'payment_details' => json_encode($chargeResponse),
-                                'payment_url' => $chargeResponse->redirect_url
-                            ]);
-
-                            // Redirect ke halaman 3DS
-                            return redirect($chargeResponse->redirect_url);
+                switch ($paymentMethod->gateway) {
+                    case 'midtrans':
+                        switch ($paymentType) {
+                            case 'credit_card':
+                                $cardToken = $this->getCardToken($request);
+                                if (!$cardToken) {
+                                    return redirect()->back()->with('error', 'Gagal mendapatkan token kartu kredit');
+                                }
+                                $transactionParams['payment_type'] = 'credit_card';
+                                $transactionParams['credit_card'] = [
+                                    'token_id' => $cardToken,
+                                    'authentication' => true,
+                                ];
+                                break;
+                            case 'bank_transfer':
+                                $transactionParams['payment_type'] = 'bank_transfer';
+                                $transactionParams['bank_transfer'] = ['bank' => $request->bank ?? 'bca'];
+                                break;
+                            case 'gopay':
+                                $transactionParams['payment_type'] = 'gopay';
+                                break;
+                            default:
+                                Log::warning('Unrecognized payment type for Midtrans: ' . $paymentType . ', defaulting to bank_transfer BCA');
+                                $transactionParams['payment_type'] = 'bank_transfer';
+                                $transactionParams['bank_transfer'] = ['bank' => 'bca'];
+                                break;
                         }
                         break;
-
-                    case 'bank_transfer':
-                        // Tambahkan detail bank transfer
-                        $transactionParams['payment_type'] = 'bank_transfer';
-                        $transactionParams['bank_transfer'] = [
-                            'bank' => $request->bank ?? 'bca', // Default ke BCA jika tidak diisi
-                        ];
-
-                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
-
-                        // Log response
-                        Log::info('Midtrans bank transfer response', [
-                            'response' => $chargeResponse
-                        ]);
-
-                        // Simpan response data
-                        $order->update([
-                            'payment_details' => json_encode($chargeResponse),
-                            'payment_url' => route('thank-you', $order->id)
-                        ]);
-
-                        // Redirect ke halaman thank you
-                        return redirect()->route('thank-you', $order->id);
-
-                    case 'gopay':
-                        // Tambahkan detail gopay
-                        $transactionParams['payment_type'] = 'gopay';
-
-                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
-
-                        // Log response
-                        Log::info('Midtrans GoPay response', [
-                            'response' => $chargeResponse
-                        ]);
-
-                        // Simpan response data
-                        $order->update([
-                            'payment_details' => json_encode($chargeResponse),
-                            'payment_url' => $chargeResponse->actions[0]->url ?? null
-                        ]);
-
-                        // Redirect ke QR Code GoPay
-                        if (isset($chargeResponse->actions[0]->url)) {
-                            return redirect($chargeResponse->actions[0]->url);
-                        }
-
-                        return redirect()->route('thank-you', $order->id);
-
-                    default:
-                        // Default ke bank transfer BCA jika payment_type tidak dikenali
-                        Log::warning('Unrecognized payment type: ' . $paymentType . ', defaulting to bank_transfer BCA');
-
-                        $transactionParams['payment_type'] = 'bank_transfer';
-                        $transactionParams['bank_transfer'] = [
-                            'bank' => 'bca',
-                        ];
-
-                        $chargeResponse = \Midtrans\CoreApi::charge($transactionParams);
-
-                        // Simpan response data
-                        $order->update([
-                            'payment_details' => json_encode($chargeResponse),
-                            'payment_url' => isset($chargeResponse->va_numbers[0]->bank) ? route('thank-you', $order->id) : null
-                        ]);
-
-                        // Redirect ke halaman thank you
-                        return redirect()->route('thank-you', $order->id);
+                    // Tambahkan case untuk gateway lain jika ada logika payment_type yang berbeda
                 }
+
+                $chargeResponse = $gateway->createTransaction($transactionParams);
+
+                $paymentUrl = null;
+                if (!empty($chargeResponse->redirect_url)) { // Untuk 3DS atau halaman pembayaran
+                    $paymentUrl = $chargeResponse->redirect_url;
+                } elseif ($paymentType === 'gopay' && !empty($chargeResponse->actions[0]->url)) { // Untuk GoPay QR
+                    $paymentUrl = $chargeResponse->actions[0]->url;
+                } else {
+                    $paymentUrl = route('thank-you', $order->id);
+                }
+
+                $order->update([
+                    'payment_details' => json_encode($chargeResponse),
+                    'payment_url' => $paymentUrl
+                ]);
+
+                // Redirect jika ada URL pembayaran eksternal
+                if ($paymentUrl && $paymentUrl !== route('thank-you', $order->id)) {
+                    return redirect($paymentUrl);
+                }
+
+                return redirect()->route('thank-you', $order->id);
+
             } catch (\Exception $e) {
-                // Log error
-                Log::error('Midtrans payment error: ' . $e->getMessage(), [
+                Log::error('Payment gateway error: ' . $e->getMessage(), [
                     'exception' => $e,
                     'order_id' => $order->id
                 ]);
-
-                // Redirect kembali dengan pesan error
-                return redirect()->back()->with('error', 'Gagal memulai pembayaran dengan Midtrans. Silakan coba lagi atau pilih metode pembayaran lain. Error: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Gagal memulai pembayaran. Silakan coba lagi atau pilih metode pembayaran lain. Error: ' . $e->getMessage());
             }
         } else {
             // Untuk metode pembayaran non-gateway (misalnya transfer manual)
@@ -552,10 +488,16 @@ class CheckoutController extends Controller
      */
     private function getCardToken(Request $request)
     {
+        // TODO: This Midtrans-specific logic should be moved to the MidtransGateway class.
+        // It would require passing necessary request data to the gateway method.
         try {
+            // Temporary initialization. A better approach is needed.
+            \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
+            \Midtrans\Config::$isProduction = (bool) config('services.midtrans.is_production');
+
             $cardNumber = str_replace(' ', '', $request->card_number);
 
-            // Gunakan Midtrans API untuk mendapatkan token
+            // Use Midtrans API to get token
             $response = \Midtrans\CoreApi::cardToken(
                 $cardNumber,
                 $request->card_exp_month,
@@ -575,40 +517,45 @@ class CheckoutController extends Controller
      */
     public function handleNotification(Request $request)
     {
-        try {
-            $notificationBody = json_decode($request->getContent(), true);
-            $transactionStatus = $notificationBody['transaction_status'];
-            $midtransOrderId = $notificationBody['order_id'];
-            $fraudStatus = $notificationBody['fraud_status'] ?? null;
+        // TODO: The route should specify the gateway, e.g. /api/notification/{gateway}
+        // For now, assuming 'midtrans'
+        $gateway = $this->paymentGatewayFactory->make('midtrans');
 
-            $order = Order::where('no_order', $midtransOrderId)->first();
+        try {
+            $notification = $gateway->notificationHandler($request->all());
+
+            $order = Order::where('no_order', $notification->order_id)->first();
 
             if (!$order) {
-                Log::error('Midtrans notification: Order not found with no_order: ' . $midtransOrderId);
+                Log::error('Gateway notification: Order not found with no_order: ' . $notification->order_id);
                 return response()->json(['status' => 'error', 'message' => 'Order not found']);
             }
 
-            // Update status order berdasarkan status transaksi
+            // Update order status based on transaction status
+            // This mapping logic could be moved to the gateway class
+            $transactionStatus = $notification->transaction_status;
+            $fraudStatus = $notification->fraud_status ?? null;
+
             if ($transactionStatus == 'capture') {
-                if ($fraudStatus == 'challenge') {
-                    $order->status = 'challenge';
-                } else if ($fraudStatus == 'accept') {
+                if ($fraudStatus == 'accept') {
                     $order->status = 'completed';
+                } else {
+                    $order->status = 'challenge';
                 }
             } else if ($transactionStatus == 'settlement') {
                 $order->status = 'processing';
-            } else if ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
+            } else if (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
                 $order->status = 'failed';
             } else if ($transactionStatus == 'pending') {
                 $order->status = 'pending';
             }
 
-            $order->payment_details = json_encode($notificationBody);
+            $order->payment_details = json_encode($notification);
             $order->save();
 
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
-        Log::error('Midtrans Notification Error: ' . $e->getMessage());
+        Log::error('Gateway Notification Error: ' . $e->getMessage());
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
@@ -630,18 +577,20 @@ class CheckoutController extends Controller
         // Kosongkan keranjang setelah pembayaran dikonfirmasi selesai
         session()->forget(['cart', 'voucher']);
 
-        // Check transaction status from Midtrans
+        // Check transaction status from Gateway
         try {
-            // Gunakan ID yang sama (no_order) untuk mengecek status
-            $status = Transaction::status($midtransOrderId);
+            if ($order->paymentMethod && $order->paymentMethod->gateway) {
+                $gateway = $this->paymentGatewayFactory->make($order->paymentMethod->gateway);
+                $status = $gateway->getTransactionStatus($midtransOrderId);
 
-            // Update order status and payment details
-            $order->update([
-                'status' => $this->mapMidtransStatus($status->transaction_status ?? 'pending'),
-                'payment_details' => json_encode($status)
-            ]);
+                // Update order status and payment details
+                $order->update([
+                    'status' => $this->mapMidtransStatus($status->transaction_status ?? 'pending'),
+                    'payment_details' => json_encode($status)
+                ]);
+            }
 
-            // Redirect to thank you page menggunakan UUID
+            // Redirect to thank you page
             return redirect()->route('thank-you', $order->id)
                 ->with('status', 'Pembayaran berhasil diproses');
         } catch (\Exception $e) {
@@ -693,30 +642,16 @@ class CheckoutController extends Controller
         try {
             $order = Order::findOrFail($orderId);
 
-            if (!$order->transaction_id) {
-                return redirect()->back()->with('error', 'ID Transaksi tidak ditemukan');
+            if (!$order->transaction_id || !$order->paymentMethod || !$order->paymentMethod->gateway) {
+                return redirect()->back()->with('error', 'ID Transaksi atau Gateway Pembayaran tidak ditemukan.');
             }
 
-            $status = Transaction::status($order->transaction_id);
+            $gateway = $this->paymentGatewayFactory->make($order->paymentMethod->gateway);
+            $status = $gateway->getTransactionStatus($order->transaction_id);
 
-            // Update status order
+            // Update order status
             $order->payment_details = json_encode($status);
-
-            if ((is_object($status) && ($status->transaction_status == 'settlement' || $status->transaction_status == 'capture')) ||
-                (is_array($status) && isset($status['transaction_status']) && ($status['transaction_status'] == 'settlement' || $status['transaction_status'] == 'capture'))) {
-                $order->status = 'processing';
-            } else if (is_object($status) && $status->transaction_status == 'pending') {
-                $order->status = 'pending';
-            } else if (is_object($status) && in_array($status->transaction_status, ['cancel', 'deny', 'expire'])) {
-                $order->status = 'failed';
-            } else if (is_array($status) && isset($status['transaction_status'])) {
-                if ($status['transaction_status'] == 'pending') {
-                    $order->status = 'pending';
-                } else if (in_array($status['transaction_status'], ['cancel', 'deny', 'expire'])) {
-                    $order->status = 'failed';
-                }
-            }
-
+            $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'pending');
             $order->save();
 
             return redirect()->route('thank-you', $order->id)->with('status', 'Status pembayaran berhasil diperbarui');
