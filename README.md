@@ -31,22 +31,32 @@ Aplikasi siap di gunakan....
 
 ### Backend
 
--   PHP 8.2+
--   Laravel Framework 11.9
--   Laravel Filament 3.2 (Admin Panel)
--   Laravel Sanctum 4.0 (API Authentication)
--   Laravel Octane 2.6 (Performance)
--   Spatie Laravel Permission 6.10 (Role & Permission)
--   Bezhansalleh Filament Shield 3.3 (Admin Panel Security)
--   Barryvdh Laravel DomPDF 3.1 (PDF Generator)
--   Mike42 ESC/POS PHP 4.0 (Thermal Printer)
--   Picqer PHP Barcode Generator 3.2
--   Spatie Laravel Backup 9.2
--   Maatwebsite Excel 3.1 (Excel Import/Export)
--   Intervention Image 3.11 (Image Processing)
--   Dedoc Scramble 0.11.33 (API Documentation)
--   Flowframe Laravel Trend 0.3.0 (Data Trending)
--   Doctrine DBAL 3.0 (Database Abstraction Layer)
+-   PHP ^8.2
+-   Laravel Framework ^11.9
+-   Laravel Filament ^3.2 (Admin Panel)
+-   Laravel Sanctum ^4.0 (API Authentication)
+-   Laravel Octane ^2.6 (Performance)
+-   Spatie Laravel Permission ^6.10 (Role & Permission)
+-   Bezhansalleh Filament Shield ^3.3 (Admin Panel Security)
+-   Barryvdh Laravel DomPDF ^3.1 (PDF Generator)
+-   Mike42 ESC/POS PHP ^4.0 (Thermal Printer)
+-   Picqer PHP Barcode Generator ^3.2
+-   Spatie Laravel Backup ^9.2
+-   Maatwebsite Excel ^3.1 (Excel Import/Export)
+-   Intervention Image ^3.11 (Image Processing)
+-   Dedoc Scramble ^0.11.33 (API Documentation)
+-   Flowframe Laravel Trend ^0.3.0 (Data Trending)
+-   Doctrine DBAL ^3.0 (Database Abstraction Layer)
+-   Xendit PHP SDK ^7.0 (Payment Gateway)
+-   Midtrans PHP SDK ^2.6 (Payment Gateway)
+
+### Frontend
+
+-   TailwindCSS 3.4.1
+-   Vite 5.0
+-   Axios 1.6.4
+-   PostCSS 8.4.33
+-   Autoprefixer 10.4.17
 
 ### Frontend
 
