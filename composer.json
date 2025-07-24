@@ -13,6 +13,7 @@
         "filament/filament": "^3.2",
         "flowframe/laravel-trend": "^0.3.0",
         "intervention/image": "^3.11",
+        "jenssegers/agent": "^2.6",
         "laravel/framework": "^11.9",
         "laravel/octane": "^2.6",
         "laravel/sanctum": "^4.0",
