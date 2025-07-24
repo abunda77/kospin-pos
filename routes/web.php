@@ -31,6 +31,12 @@ Route::get('/catalog', [CatalogController::class, 'index'])
 Route::get('/catalog/download-pdf', [CatalogController::class, 'downloadPdf'])->name('catalog.download-pdf');
 Route::get('/catalog/{category}', [CatalogController::class, 'show'])->name('catalog.show');
 
+// Mobile catalog routes
+Route::get('/m/catalog', [CatalogController::class, 'indexMobile'])
+    ->name('catalog.mobile');
+Route::get('/m/catalog/{category}', [CatalogController::class, 'showMobile'])
+    ->name('catalog.mobile.show');
+
 // Static pages
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');

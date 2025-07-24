@@ -48,7 +48,18 @@
 <div class="container px-4 py-12 mx-auto">
     <!-- Header dan Form Pencarian -->
     <div class="flex flex-col gap-6 mb-10 md:flex-row md:items-center md:justify-between">
-        <h1 class="text-2xl font-bold text-center text-gray-900 md:text-3xl md:text-left">Katalog Produk</h1>
+        <div class="flex items-center justify-between gap-4">
+            <h1 class="text-2xl font-bold text-center text-gray-900 md:text-3xl md:text-left">Katalog Produk</h1>
+            <a href="{{ request()->category 
+                ? route('catalog.mobile.show', request()->category) 
+                : route('catalog.mobile') }}" 
+                class="hidden md:flex items-center text-xs text-gray-600 border border-gray-300 rounded px-2 py-1">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Versi Mobile
+            </a>
+        </div>
 
         <!-- Form Pencarian yang Ditingkatkan -->
         <div class="w-full md:max-w-lg">
