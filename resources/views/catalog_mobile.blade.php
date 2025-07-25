@@ -230,18 +230,19 @@
 
                 </div>
                 <div class="p-4">
-                    <div class="flex justify-between items-start">
+                    <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
                             <h3 class="mb-1 text-sm font-medium text-gray-900">{{ $product->name }}</h3>
                             <p class="text-sm font-medium text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-                            @if($product->stock <= 5 && $product->stock > 0)
-                                <p class="mt-1 text-xs text-orange-500">Stok tinggal {{ $product->stock }}</p>
-                            @elseif($product->stock == 0)
-                                <p class="mt-1 text-xs text-red-500">Stok habis</p>
-                            @endif
                         </div>
                         <div class="ml-3">
                             <livewire:add-to-cart-mobile :product="$product" :wire:key="'cart-'.$product->id" />
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500">Kategori: {{ $product->category?->name ?? 'Tanpa Kategori' }}</span>
+                        <div class="ml-2">
+                            <livewire:product-stock :product="$product" :wire:key="'stock-'.$product->id" />
                         </div>
                     </div>
                 </div>
