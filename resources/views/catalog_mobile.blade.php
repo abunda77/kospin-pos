@@ -227,25 +227,23 @@
                             </svg>
                         </div>
                     @endif
-                    <div class="absolute top-2 right-2 z-10">
-                        <livewire:add-to-cart-mobile :product="$product" :wire:key="'cart-'.$product->id" />
-                        <noscript>
-                            <button class="inline-flex items-center justify-center p-1 w-8 h-8 text-white bg-primary-600 rounded-full shadow-sm" disabled>
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                            </button>
-                        </noscript>
-                    </div>
+
                 </div>
                 <div class="p-4">
-                    <h3 class="mb-1 text-sm font-medium text-gray-900">{{ $product->name }}</h3>
-                    <p class="text-sm font-medium text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-                    @if($product->stock <= 5 && $product->stock > 0)
-                        <p class="mt-1 text-xs text-orange-500">Stok tinggal {{ $product->stock }}</p>
-                    @elseif($product->stock == 0)
-                        <p class="mt-1 text-xs text-red-500">Stok habis</p>
-                    @endif
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="mb-1 text-sm font-medium text-gray-900">{{ $product->name }}</h3>
+                            <p class="text-sm font-medium text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                            @if($product->stock <= 5 && $product->stock > 0)
+                                <p class="mt-1 text-xs text-orange-500">Stok tinggal {{ $product->stock }}</p>
+                            @elseif($product->stock == 0)
+                                <p class="mt-1 text-xs text-red-500">Stok habis</p>
+                            @endif
+                        </div>
+                        <div class="ml-3">
+                            <livewire:add-to-cart-mobile :product="$product" :wire:key="'cart-'.$product->id" />
+                        </div>
+                    </div>
                 </div>
             </div>
         @empty
