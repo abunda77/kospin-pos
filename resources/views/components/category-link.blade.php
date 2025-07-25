@@ -86,5 +86,5 @@
             @endswitch
         @endif
     </div>
-    <span class="text-base font-semibold text-gray-700 transition-colors group-hover:text-primary-600">{{ $category->name }}</span>
+    <span class="text-base font-semibold text-gray-700 transition-colors group-hover:text-primary-600 sm:text-base text-sm truncate">{{ $category->name }}</span>
 </a>
