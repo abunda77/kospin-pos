@@ -29,12 +29,11 @@ class DetectMobileDevice
         // Detect mobile device
         $agent = new Agent();
         $isMobile = $agent->isMobile() || $agent->isTablet();
-        
-        // Jika halaman adalah catalog dan pengguna menggunakan perangkat mobile
+          // Jika halaman adalah catalog dan pengguna menggunakan perangkat mobile
         if ($isMobile && ($request->routeIs('catalog') || $request->routeIs('catalog.show'))) {
             // Redirect ke versi mobile dengan mempertahankan parameter
             $targetRoute = $request->routeIs('catalog.show') 
-                ? route('catalog.mobile.show', $request->route('category'), $request->query()) 
+                ? route('catalog.mobile.show', $request->route('category')?->slug ?? $request->route('category'), $request->query()) 
                 : route('catalog.mobile', $request->query());
             
             return redirect()->to($targetRoute);

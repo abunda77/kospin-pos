@@ -34,7 +34,7 @@ Route::get('/catalog/{category}', [CatalogController::class, 'show'])->name('cat
 // Mobile catalog routes
 Route::get('/m/catalog', [CatalogController::class, 'indexMobile'])
     ->name('catalog.mobile');
-Route::get('/m/catalog/{category}', [CatalogController::class, 'showMobile'])
+Route::get('/m/catalog/{categorySlug}', [CatalogController::class, 'showMobile'])
     ->name('catalog.mobile.show');
 
 // Static pages

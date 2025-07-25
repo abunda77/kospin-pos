@@ -31,32 +31,105 @@
     <div class="flex overflow-x-auto snap-x pb-4 -mx-2 hide-scrollbar">
         <div class="flex-shrink-0 w-36 mx-2 snap-start">
             <a href="{{ route('catalog.mobile') }}"
-               class="flex gap-2 items-center px-3 py-2 bg-white rounded-lg shadow-sm transition-all duration-300 hover:bg-primary-50 {{ !request()->category ? 'ring-2 ring-primary-500 bg-primary-50' : '' }}">
-                <div class="flex justify-center items-center min-w-[2.5rem] h-10 bg-gradient-to-br rounded-md from-primary-50 to-primary-100">
-                    <svg class="w-5 h-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               class="flex gap-3 items-center px-4 py-3 w-full rounded-xl shadow transition-all duration-300 hover:bg-primary-50 hover:shadow-md group {{ !request()->category ? 'ring-2 ring-primary-500 bg-primary-50 bg-gray-100' : 'bg-gray-100' }}">
+                <div class="flex justify-center items-center min-w-[3rem] h-12 bg-gradient-to-br rounded-lg from-primary-50 to-primary-100">
+                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                     </svg>
                 </div>
                 <span class="text-xs font-medium text-gray-700 whitespace-nowrap">Semua</span>
             </a>
         </div>
-
         @foreach($categories as $cat)
-        <div class="flex-shrink-0 w-auto mx-2 snap-start">
-            <a href="{{ route('catalog.mobile.show', $cat->slug) }}"
-               class="flex gap-2 items-center px-3 py-2 bg-white rounded-lg shadow-sm transition-all duration-300 hover:bg-primary-50 {{ request()->category == $cat->slug ? 'ring-2 ring-primary-500 bg-primary-50' : '' }}">
-                <div class="flex justify-center items-center min-w-[2.5rem] h-10 bg-gradient-to-br rounded-md from-primary-50 to-primary-100">
-                    @if($cat->icon)
-                    {!! $cat->icon !!}
-                    @else
-                    <svg class="w-5 h-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                    @endif
-                </div>
-                <span class="text-xs font-medium text-gray-700 whitespace-nowrap">{{ $cat->name }}</span>
-            </a>
-        </div>
+            @php
+                $cardBg = match(strtolower($cat->name)) {
+                    'makanan' => 'bg-yellow-100',
+                    'minuman' => 'bg-blue-100',
+                    'atk' => 'bg-pink-100',
+                    'bahan pokok' => 'bg-green-100',
+                    'elektronik' => 'bg-gray-200',
+                    'kebutuhan tersier' => 'bg-purple-100',
+                    'rumah tangga' => 'bg-orange-100',
+                    'perawatan badan' => 'bg-red-100',
+                    'lainnya' => 'bg-slate-100',
+                    default => 'bg-gray-100',
+                };
+                $iconBg = match(strtolower($cat->name)) {
+                    'makanan' => 'bg-yellow-300',
+                    'minuman' => 'bg-blue-300',
+                    'atk' => 'bg-pink-300',
+                    'bahan pokok' => 'bg-green-300',
+                    'elektronik' => 'bg-gray-300',
+                    'kebutuhan tersier' => 'bg-purple-300',
+                    'rumah tangga' => 'bg-orange-300',
+                    'perawatan badan' => 'bg-red-300',
+                    'lainnya' => 'bg-slate-300',
+                    default => 'bg-primary-300',
+                };
+            @endphp
+            <div class="flex-shrink-0 w-auto mx-2 snap-start">
+                <a href="{{ route('catalog.mobile.show', $cat->slug) }}"
+                   class="flex gap-3 items-center px-4 py-3 w-full rounded-xl shadow transition-all duration-300 hover:bg-primary-50 hover:shadow-md group {{ $cardBg }} {{ request()->category == $cat->slug ? 'ring-2 ring-primary-500 bg-primary-50' : '' }}">
+                    <div class="flex justify-center items-center min-w-[3rem] h-12 rounded-lg {{ $iconBg }}">
+                        @if($cat->icon)
+                            <img src="{{ Storage::url($cat->icon) }}" alt="{{ $cat->name }}" class="object-contain w-6 h-6">
+                        @else
+                            @switch(strtolower($cat->name))
+                                @case('makanan')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    @break
+                                @case('minuman')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19c-1.1 0-2-.9-2-2V9h4v8c0 1.1-.9 2-2 2zM8 3h8l1 6H7l1-6z"/>
+                                    </svg>
+                                    @break
+                                @case('atk')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                    @break
+                                @case('bahan pokok')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                                    </svg>
+                                    @break
+                                @case('elektronik')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    @break
+                                @case('kebutuhan tersier')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                    </svg>
+                                    @break
+                                @case('rumah tangga')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    @break
+                                @case('perawatan badan')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 10-4 0v2a2 2 0 104 0V7zm-7 8a7 7 0 1114 0v1a2 2 0 01-2 2H6a2 2 0 01-2-2v-1z"/>
+                                    </svg>
+                                    @break
+                                @case('lainnya')
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                    </svg>
+                                    @break
+                                @default
+                                    <svg class="w-6 h-6 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                    </svg>
+                            @endswitch
+                        @endif
+                    </div>
+                    <span class="text-xs font-medium text-gray-700 whitespace-nowrap">{{ $cat->name }}</span>
+                </a>
+            </div>
         @endforeach
     </div>
 </div>
@@ -144,30 +217,39 @@
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         @forelse($products as $product)
             <div class="overflow-hidden bg-white rounded-lg shadow-sm border border-gray-100">
-                <div class="flex items-center">
-                    <div class="w-1/3 h-24">
-                        <img
-                            src="{{ $product->image_url }}"
-                            alt="{{ $product->name }}"
-                            class="object-cover w-full h-full"
-                            width="100" height="100"
-                            loading="lazy"
-                        >
-                    </div>
-                    <div class="w-2/3 p-3">
-                        <h3 class="mb-1 text-base font-medium text-gray-800 line-clamp-1">{{ $product->name }}</h3>
-                        <p class="mb-2 text-xs text-gray-600 line-clamp-1">{{ $product->description }}</p>                        <div class="flex justify-between items-center">
-                            <span class="text-base font-bold text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
-                            <livewire:add-to-cart-mobile :product="$product" :wire:key="'cart-mobile-'.$product->id" />
+                <div class="relative aspect-w-4 aspect-h-3">
+                    @if($product->image)
+                        <img src="{{ url('/storage/public/products/' . basename($product->image)) }}" alt="{{ $product->name }}" class="object-cover w-full h-full">
+                    @else
+                        <div class="flex items-center justify-center w-full h-full bg-gray-100">
+                            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
                         </div>
+                    @endif
+                    <div class="absolute top-2 right-2 z-10">
+                        <livewire:add-to-cart-mobile :product="$product" :wire:key="'cart-'.$product->id" />
+                        <noscript>
+                            <button class="inline-flex items-center justify-center p-1 w-8 h-8 text-white bg-primary-600 rounded-full shadow-sm" disabled>
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </button>
+                        </noscript>
                     </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="mb-1 text-sm font-medium text-gray-900">{{ $product->name }}</h3>
+                    <p class="text-sm font-medium text-primary-600">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                    @if($product->stock <= 5 && $product->stock > 0)
+                        <p class="mt-1 text-xs text-orange-500">Stok tinggal {{ $product->stock }}</p>
+                    @elseif($product->stock == 0)
+                        <p class="mt-1 text-xs text-red-500">Stok habis</p>
+                    @endif
                 </div>
             </div>
         @empty
             <div class="col-span-full py-6 text-center">
-                <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
                 <p class="text-gray-500">Tidak ada produk yang ditemukan.</p>
             </div>
         @endforelse

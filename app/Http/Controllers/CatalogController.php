@@ -117,8 +117,10 @@ class CatalogController extends Controller
         return view('catalog_mobile', compact('products', 'categories', 'activeBanners', 'category'));
     }
 
-    public function showMobile(Request $request, Category $category)
+    public function showMobile(Request $request, $categorySlug)
     {
+        $category = Category::where('slug', $categorySlug)->firstOrFail();
+        
         $query = Product::where('is_active', true)
             ->where('category_id', $category->id)
             ->with('category');
