@@ -28,15 +28,15 @@
 <div class="container px-4 py-12 mx-auto">
     <h2 class="mb-8 text-3xl font-bold text-center text-gray-900">Kategori Produk</h2>
 
-    <div class="grid grid-cols-2 gap-6 mx-auto max-w-7xl sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div class="grid grid-cols-2 gap-4 mx-auto max-w-7xl sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         <a href="{{ route('catalog') }}"
-           class="flex flex-col items-center p-6 bg-white rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group {{ !request()->category ? 'ring-2 ring-primary-500' : '' }}">
-            <div class="flex justify-center items-center mb-4 w-16 h-16 bg-gradient-to-br rounded-2xl md:w-18 md:h-18 lg:w-20 lg:h-20 from-primary-50 to-primary-100">
-                <svg class="w-8 h-8 transition-colors md:w-9 md:h-9 lg:w-10 lg:h-10 text-primary-600 group-hover:text-primary-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+           class="flex gap-3 items-center px-4 py-3 bg-white rounded-xl shadow transition-all duration-300 hover:bg-primary-50 hover:shadow-md group {{ !request()->category ? 'ring-2 ring-primary-500 bg-primary-50' : '' }}">
+            <div class="flex justify-center items-center min-w-[3rem] h-12 bg-gradient-to-br rounded-lg from-primary-50 to-primary-100">
+                <svg class="w-6 h-6 transition-colors text-primary-600 group-hover:text-primary-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                 </svg>
             </div>
-            <span class="text-base font-semibold text-center text-gray-700 transition-colors group-hover:text-primary-600">Semua Produk</span>
+            <span class="text-base font-semibold text-gray-700 transition-colors group-hover:text-primary-600">Semua Produk</span>
         </a>
 
         @foreach($categories as $cat)
