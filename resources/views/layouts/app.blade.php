@@ -55,7 +55,7 @@
         </div>
     </main>
 
-    <footer class="py-8 mt-auto text-white bg-gray-800 shadow-lg">
+    <footer class="hidden md:block py-8 mt-auto text-white bg-gray-800 shadow-lg">
         <div class="container px-4 mx-auto">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <div class="text-center md:text-left">

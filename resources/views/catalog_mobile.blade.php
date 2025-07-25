@@ -40,6 +40,7 @@
                 <span class="text-xs font-medium text-gray-700 whitespace-nowrap">Semua</span>
             </a>
         </div>
+
         @foreach($categories as $cat)
             @php
                 $cardBg = match(strtolower($cat->name)) {
@@ -257,26 +258,31 @@
     <!-- Pagination - Simplified -->
     <div class="mt-6">
         @if ($products->hasPages())
-            <div class="px-4 py-3 bg-white rounded-lg shadow-sm">
-                <div class="flex justify-between">
+            <div class="bg-white rounded-lg shadow-sm mx-4">
+                <div class="flex items-center justify-between px-4 py-3">
+                    <!-- Previous Button -->
                     <a href="{{ $products->previousPageUrl() }}" 
-                       class="inline-flex items-center px-4 py-2 {{ !$products->onFirstPage() ? 'text-primary-600' : 'text-gray-400 cursor-not-allowed' }}"
+                       class="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ !$products->onFirstPage() ? 'text-primary-600 hover:bg-primary-50 active:bg-primary-100' : 'text-gray-300 cursor-not-allowed' }}"
                        @if(!$products->onFirstPage()) wire:navigate @endif>
-                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
-                        Sebelumnya
+                        <span>Sebelumnya</span>
                     </a>
                     
-                    <span class="text-sm text-gray-600">
-                        {{ $products->currentPage() }} dari {{ $products->lastPage() }}
-                    </span>
+                    <!-- Page Info -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-900">{{ $products->currentPage() }}</span>
+                        <span class="text-sm text-gray-500">dari</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $products->lastPage() }}</span>
+                    </div>
                     
+                    <!-- Next Button -->
                     <a href="{{ $products->nextPageUrl() }}" 
-                       class="inline-flex items-center px-4 py-2 {{ $products->hasMorePages() ? 'text-primary-600' : 'text-gray-400 cursor-not-allowed' }}"
+                       class="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ $products->hasMorePages() ? 'text-primary-600 hover:bg-primary-50 active:bg-primary-100' : 'text-gray-300 cursor-not-allowed' }}"
                        @if($products->hasMorePages()) wire:navigate @endif>
-                        Selanjutnya
-                        <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span>Selanjutnya</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </a>
