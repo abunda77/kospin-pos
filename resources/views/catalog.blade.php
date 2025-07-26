@@ -61,10 +61,12 @@
             
             <!-- Mobile Version Button - Improved Styling -->
             @php
+                // Get current category from query parameter only (desktop uses query params)
                 $currentCategory = request()->category;
-                $currentParams = request()->query();
+                $currentParams = request()->except(['category']); // Remove category from query params
+                
                 $mobileRoute = $currentCategory 
-                    ? route('catalog.mobile.show', array_merge([$currentCategory], $currentParams))
+                    ? route('catalog.mobile.show', array_merge(['categorySlug' => $currentCategory], $currentParams))
                     : route('catalog.mobile', $currentParams);
             @endphp
             <a href="{{ $mobileRoute }}" 
@@ -259,7 +261,8 @@
                                 </span>
                             @else
                                 @php
-                                    $url = request()->has('category') ? $products->url($i) . '&category=' . request()->get('category') : $products->url($i);
+                                    $currentCategory = request()->category;
+                                    $url = $currentCategory ? $products->url($i) . '&category=' . $currentCategory : $products->url($i);
                                 @endphp
                                 <a href="{{ $url }}" class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100 transition-colors duration-150 ease-in-out">
                                     {{ $i }}
@@ -280,7 +283,8 @@
                         {{-- Next Page Link --}}
                         @if ($products->hasMorePages())
                             @php
-                                $url = request()->has('category') ? $products->nextPageUrl() . '&category=' . request()->get('category') : $products->nextPageUrl();
+                                $currentCategory = request()->category;
+                                $url = $currentCategory ? $products->nextPageUrl() . '&category=' . $currentCategory : $products->nextPageUrl();
                             @endphp
                             <a href="{{ $url }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-200 transition-colors duration-150 ease-in-out hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 active:bg-primary-100">
                                 Next

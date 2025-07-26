@@ -32,7 +32,7 @@
                    str_contains(request()->path(), 'm/catalog');
     $categoryRoute = $isMobileMode 
         ? route('catalog.mobile.show', $category->slug)
-        : route('catalog.show', $category->slug);
+        : route('catalog', ['category' => $category->slug]);
 @endphp
 
 <a href="{{ $categoryRoute }}"
