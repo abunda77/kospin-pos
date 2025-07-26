@@ -42,7 +42,7 @@ Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 
 // Preference setting route
-Route::get('/set-view-preference/{preference}', function($preference) {
+Route::get('/set-view-preference/{preference}', function ($preference) {
     if (in_array($preference, ['mobile', 'desktop'])) {
         session(['view_preference' => $preference]);
     }
@@ -73,11 +73,3 @@ Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('
 Route::get('/payment/finish', [CheckoutController::class, 'finishPayment'])->name('payment.finish');
 Route::get('/payment/unfinish', [CheckoutController::class, 'unfinishPayment'])->name('payment.unfinish');
 Route::get('/payment/error', [CheckoutController::class, 'errorPayment'])->name('payment.error');
-
-
-
-
-
-
-
-
