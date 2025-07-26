@@ -41,6 +41,14 @@ Route::get('/m/catalog/{categorySlug}', [CatalogController::class, 'showMobile']
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 
+// Preference setting route
+Route::get('/set-view-preference/{preference}', function($preference) {
+    if (in_array($preference, ['mobile', 'desktop'])) {
+        session(['view_preference' => $preference]);
+    }
+    return redirect()->back();
+})->name('set.view.preference');
+
 
 
 Route::get('/cart', [CartController::class, 'index'])

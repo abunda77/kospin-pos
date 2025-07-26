@@ -118,7 +118,14 @@
     @else
         <div class="py-4 text-center sm:py-6 md:py-8">
             <p class="text-xs text-gray-600 sm:text-sm md:text-base">Keranjang belanja Anda kosong</p>
-            <a href="{{ route('catalog') }}" class="text-xs text-blue-500 sm:text-sm md:text-base hover:underline">Kembali ke Katalog</a>
+            @php
+                $isMobileMode = session('view_preference') === 'mobile' ||
+                               request()->routeIs('catalog.mobile*') || 
+                               str_contains(request()->path(), 'm/catalog') ||
+                               str_contains(request()->headers->get('referer') ?? '', 'm/catalog');
+                $catalogRoute = $isMobileMode ? route('catalog.mobile') : route('catalog');
+            @endphp
+            <a href="{{ $catalogRoute }}" class="text-xs text-blue-500 sm:text-sm md:text-base hover:underline">Kembali ke Katalog</a>
         </div>
     @endif
 </div>

@@ -13,16 +13,23 @@ class DetectMobileDevice
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next): Response
+     */    public function handle(Request $request, Closure $next): Response
     {
+        // Set user preference based on explicit choice
+        if ($request->routeIs('catalog.mobile*')) {
+            $request->session()->put('view_preference', 'mobile');
+        } elseif ($request->routeIs('catalog*') && !$request->routeIs('catalog.mobile*')) {
+            $request->session()->put('view_preference', 'desktop');
+        }
+        
         // Jika pengguna memiliki preferensi view yang disimpan di session, gunakan itu
         if ($request->session()->has('view_preference')) {
             return $next($request);
         }
         
-        // Jika route sudah mengandung '/m/', biarkan saja
+        // Jika route sudah mengandung '/m/', set mobile preference
         if (strpos($request->path(), 'm/') === 0) {
+            $request->session()->put('view_preference', 'mobile');
             return $next($request);
         }
         
