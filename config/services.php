@@ -42,5 +42,40 @@ return [
         'merchant_id' => env('MIDTRANS_MERCHANT_ID', ''),
     ],
 
+'twitter-oauth-2' => [
+    'client_id' => env('TWITTER_CLIENT_ID'),
+    'client_secret' => env('TWITTER_CLIENT_SECRET'),
+    'redirect' => env('TWITTER_REDIRECT_URI'),
+],
+
+'facebook' => [
+    'client_id' => env('FACEBOOK_CLIENT_ID'),
+    'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+    'redirect' => env('FACEBOOK_REDIRECT_URI'),
+],
+
+'discord' => [
+    'client_id' => env('DISCORD_CLIENT_ID'),
+    'client_secret' => env('DISCORD_CLIENT_SECRET'),
+    'redirect' => env('DISCORD_URL'),
+],
+
+'snapchat' => [
+    'client_id' => env('SNAPCHAT_CLIENT_ID'),
+    'client_secret' => env('SNAPCHAT_CLIENT_SECRET'),
+    'redirect' => env('SNAPCHAT_CALLBACK'),
+],
+
+'google' => [
+    'client_id' => env('GOOGLE_CLIENT_ID'),
+    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    'redirect' => env('GOOGLE_CALLBACK'),
+],
+
+'github' => [
+    'client_id' => env('GITHUB_CLIENT_ID'),
+    'client_secret' => env('GITHUB_CLIENT_SECRET'),
+    'redirect' => env('GITHUB_URL'),
+],
 ];
 

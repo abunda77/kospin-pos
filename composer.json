@@ -24,6 +24,7 @@
         "picqer/php-barcode-generator": "^3.2",
         "spatie/laravel-backup": "^9.2",
         "spatie/laravel-permission": "^6.10",
+        "tomatophp/filament-social": "^1.0",
         "xendit/xendit-php": "^7.0"
     },
     "require-dev": {

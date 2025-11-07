@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('login')
+            ->path('admin')
             ->login()
             ->colors([
                 'primary' => Color::Purple,
@@ -49,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                \App\Http\Middleware\EnsureSocialUserHasRole::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
@@ -62,9 +63,6 @@ class AdminPanelProvider extends PanelProvider
             // ->topNavigation()
 
             ->font('poppins')
-            ->plugins([
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
-            ])
             ->plugins([
                 FilamentShieldPlugin::make()
                     ->gridColumns([
@@ -82,6 +80,9 @@ class AdminPanelProvider extends PanelProvider
                         'default' => 1,
                         'sm' => 2,
                     ]),
-            ]);;
+                \TomatoPHP\FilamentSocial\FilamentSocialPlugin::make()
+                    ->socialLogin()
+                    ->socialRegister()
+            ]);
     }
 }
