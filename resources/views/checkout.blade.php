@@ -155,7 +155,10 @@
                         @endphp
 
                         @foreach($paymentMethods as $method)
-                            <div class="p-3 rounded-md border border-gray-200 cursor-pointer hover:border-blue-500 payment-method-option {{ $bgColors[$loop->index % count($bgColors)] }}" data-id="{{ $method->id }}" data-gateway="{{ $method->gateway }}">
+                            <div class="p-3 rounded-md border border-gray-200 cursor-pointer hover:border-blue-500 payment-method-option {{ $bgColors[$loop->index % count($bgColors)] }}" 
+                                 data-id="{{ $method->id }}" 
+                                 data-gateway="{{ $method->gateway }}"
+                                 data-name="{{ strtolower($method->name) }}">
                                 <label class="flex items-center cursor-pointer">
                                     <input type="radio" name="payment_method_id" value="{{ $method->id }}" class="mr-2" required>
                                     <div class="flex items-center">
@@ -168,6 +171,32 @@
                             </div>
                         @endforeach
                     </div>
+                </div>
+
+                <!-- QRIS Dynamic Display -->
+                <div id="qris-display" class="hidden p-4 mt-4 rounded-md border border-blue-200 bg-blue-50">
+                    <h3 class="mb-3 font-medium text-center">Scan QRIS untuk Pembayaran</h3>
+                    <div class="flex flex-col items-center">
+                        <div id="qris-loading" class="flex flex-col items-center">
+                            <svg class="w-12 h-12 mb-2 animate-spin text-blue-600" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-sm text-gray-600">Generating QRIS...</p>
+                        </div>
+                        <div id="qris-content" class="hidden flex flex-col items-center">
+                            <img id="qris-image" src="" alt="QRIS Code" class="mb-3 w-64 h-64 border-2 border-gray-300 rounded">
+                            <p class="mb-2 text-lg font-semibold">Total: Rp <span id="qris-amount">{{ number_format($total, 0, ',', '.') }}</span></p>
+                            <p class="text-sm text-gray-600">Scan QR code dengan aplikasi pembayaran Anda</p>
+                        </div>
+                        <div id="qris-error" class="hidden text-center text-red-600">
+                            <p class="mb-2">Gagal generate QRIS</p>
+                            <button type="button" onclick="retryQrisGeneration()" class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="qris_dynamic_id" id="qris_dynamic_id">
                 </div>
 
                 <!-- Form Pembayaran Dinamis -->
@@ -408,8 +437,15 @@
                 // Show payment details based on gateway
                 const gateway = this.dataset.gateway;
                 const methodName = this.querySelector('span').textContent.trim();
+                const methodNameLower = this.dataset.name;
 
-                showPaymentForm(gateway, methodName);
+                // Check if QRIS payment method
+                if (methodNameLower && methodNameLower.includes('qris')) {
+                    showQrisPayment();
+                } else {
+                    hideQrisPayment();
+                    showPaymentForm(gateway, methodName);
+                }
             });
         });
 
@@ -546,6 +582,79 @@
                     toggleFormState(memberForm, false);
                 }
             });
+    }
+
+    // QRIS Payment Functions
+    function showQrisPayment() {
+        // Hide other payment forms
+        const paymentDetails = document.getElementById('payment-details');
+        if (paymentDetails) {
+            paymentDetails.classList.add('hidden');
+        }
+
+        // Show QRIS display
+        const qrisDisplay = document.getElementById('qris-display');
+        qrisDisplay.classList.remove('hidden');
+
+        // Generate QRIS
+        generateQrisDynamic();
+    }
+
+    function hideQrisPayment() {
+        const qrisDisplay = document.getElementById('qris-display');
+        if (qrisDisplay) {
+            qrisDisplay.classList.add('hidden');
+        }
+    }
+
+    function generateQrisDynamic() {
+        const qrisLoading = document.getElementById('qris-loading');
+        const qrisContent = document.getElementById('qris-content');
+        const qrisError = document.getElementById('qris-error');
+
+        // Show loading
+        qrisLoading.classList.remove('hidden');
+        qrisContent.classList.add('hidden');
+        qrisError.classList.add('hidden');
+
+        // Get total amount from page
+        const totalAmount = {{ $total }};
+
+        // Send request to generate QRIS
+        fetch('/checkout/generate-qris', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                amount: totalAmount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Hide loading, show content
+                qrisLoading.classList.add('hidden');
+                qrisContent.classList.remove('hidden');
+
+                // Set QR image
+                document.getElementById('qris-image').src = data.qr_image_url;
+                document.getElementById('qris-amount').textContent = data.amount_formatted;
+                document.getElementById('qris_dynamic_id').value = data.qris_dynamic_id;
+            } else {
+                throw new Error(data.message || 'Failed to generate QRIS');
+            }
+        })
+        .catch(error => {
+            console.error('QRIS Generation Error:', error);
+            qrisLoading.classList.add('hidden');
+            qrisError.classList.remove('hidden');
+        });
+    }
+
+    function retryQrisGeneration() {
+        generateQrisDynamic();
     }
 </script>
 @endpush

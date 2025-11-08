@@ -10,7 +10,9 @@ use App\Models\VoucherDiskon;
 use App\Services\Payment\PaymentGatewayFactory;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Midtrans\Config;
 use Midtrans\CoreApi;
 use Midtrans\Transaction;
@@ -61,6 +63,188 @@ class CheckoutController extends Controller
             'exists' => !is_null($member),
             'member' => $member
         ]);
+    }
+
+    public function generateQris(Request $request)
+    {
+        try {
+            $request->validate([
+                'amount' => 'required|numeric|min:1'
+            ]);
+
+            $amount = $request->input('amount');
+
+            // Get active QRIS static code
+            $qrisStatic = \App\Models\QrisStatic::where('is_active', true)->first();
+
+            if (!$qrisStatic) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active QRIS configuration found. Please contact administrator.'
+                ], 400);
+            }
+
+            // Parse merchant name from static QRIS
+            $merchantName = $this->parseMerchantNameFromQris($qrisStatic->qris_string);
+
+            // Generate dynamic QRIS
+            $dynamicQris = $this->generateDynamicQrisString(
+                $qrisStatic->qris_string,
+                $amount,
+                'Rupiah',
+                '0'
+            );
+
+            // Generate QR code image
+            $qrImagePath = $this->generateQrCodeImage($dynamicQris);
+
+            // Save to database
+            $qrisDynamic = \App\Models\QrisDynamic::create([
+                'qris_static_id' => $qrisStatic->id,
+                'merchant_name' => $merchantName,
+                'qris_string' => $dynamicQris,
+                'amount' => $amount,
+                'fee_type' => 'Rupiah',
+                'fee_value' => 0,
+                'qr_image_path' => $qrImagePath,
+                'created_by' => Auth::check() ? Auth::id() : null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'qris_dynamic_id' => $qrisDynamic->id,
+                'qr_image_url' => asset('storage/' . $qrImagePath),
+                'amount_formatted' => number_format($amount, 0, ',', '.'),
+                'merchant_name' => $merchantName
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('QRIS Generation Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate QRIS: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    protected function parseMerchantNameFromQris(string $qrisData): string
+    {
+        $tag = '59';
+        $tagIndex = strpos($qrisData, $tag);
+
+        if ($tagIndex === false) {
+            return 'Merchant';
+        }
+
+        try {
+            $lengthIndex = $tagIndex + strlen($tag);
+            $lengthStr = substr($qrisData, $lengthIndex, 2);
+            $length = intval($lengthStr);
+
+            if ($length <= 0) {
+                return 'Merchant';
+            }
+
+            $valueIndex = $lengthIndex + 2;
+            $merchantName = substr($qrisData, $valueIndex, $length);
+
+            return trim($merchantName) ?: 'Merchant';
+        } catch (\Exception $e) {
+            return 'Merchant';
+        }
+    }
+
+    protected function generateDynamicQrisString(
+        string $staticQris,
+        string $amount,
+        string $feeType,
+        string $feeValue
+    ): string {
+        if (strlen($staticQris) < 4) {
+            throw new \Exception('Invalid static QRIS data.');
+        }
+
+        // Remove CRC (last 4 characters)
+        $qrisWithoutCrc = substr($staticQris, 0, -4);
+
+        // Change from static (01) to dynamic (12)
+        $step1 = str_replace('010211', '010212', $qrisWithoutCrc);
+
+        // Split by merchant country code
+        $parts = explode('5802ID', $step1);
+
+        if (count($parts) !== 2) {
+            throw new \Exception("QRIS data is not in the expected format (missing '5802ID').");
+        }
+
+        // Build amount tag
+        $amountStr = strval(intval($amount));
+        $amountTag = '54'.str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT).$amountStr;
+
+        // Build fee tag if applicable
+        $feeTag = '';
+        if ($feeValue && floatval($feeValue) > 0) {
+            if ($feeType === 'Rupiah') {
+                $feeValueStr = strval(intval($feeValue));
+                $feeTag = '55020256'.str_pad(strlen($feeValueStr), 2, '0', STR_PAD_LEFT).$feeValueStr;
+            } else {
+                $feeTag = '55020357'.str_pad(strlen($feeValue), 2, '0', STR_PAD_LEFT).$feeValue;
+            }
+        }
+
+        // Reconstruct payload
+        $payload = $parts[0].$amountTag.$feeTag.'5802ID'.$parts[1];
+
+        // Calculate and append CRC
+        $finalCrc = $this->calculateCrc16($payload);
+
+        return $payload.$finalCrc;
+    }
+
+    protected function calculateCrc16(string $str): string
+    {
+        $crc = 0xFFFF;
+        $strlen = strlen($str);
+
+        for ($c = 0; $c < $strlen; $c++) {
+            $crc ^= ord($str[$c]) << 8;
+            for ($i = 0; $i < 8; $i++) {
+                if ($crc & 0x8000) {
+                    $crc = ($crc << 1) ^ 0x1021;
+                } else {
+                    $crc = $crc << 1;
+                }
+            }
+        }
+
+        $hex = strtoupper(dechex($crc & 0xFFFF));
+
+        return str_pad($hex, 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function generateQrCodeImage(string $qrisString): string
+    {
+        try {
+            $builder = new \Endroid\QrCode\Builder\Builder(
+                writer: new \Endroid\QrCode\Writer\PngWriter,
+                writerOptions: [],
+                validateResult: false,
+                data: $qrisString,
+                encoding: new \Endroid\QrCode\Encoding\Encoding('UTF-8'),
+                size: 400,
+                margin: 10,
+            );
+
+            $result = $builder->build();
+
+            $filename = 'qris-checkout/qris-'.now()->format('YmdHis').'-'.uniqid().'.png';
+            \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $result->getString());
+
+            return $filename;
+        } catch (\Exception $e) {
+            Log::error('QR Code Generation Error: ' . $e->getMessage());
+            throw new \Exception('Failed to generate QR code image');
+        }
     }
 
     public function process(Request $request)
@@ -174,7 +358,7 @@ class CheckoutController extends Controller
 
     public function thankYou($orderId)
     {
-        $order = Order::with(['orderProducts.product', 'paymentMethod'])
+        $order = Order::with(['orderProducts.product', 'paymentMethod', 'qrisDynamic'])
             ->findOrFail($orderId);
 
         // Kosongkan keranjang saat pengguna sampai di halaman thank-you
@@ -318,7 +502,8 @@ class CheckoutController extends Controller
             'total_amount' => $total,
             'total_price' => $total,
             'voucher_id' => $voucher ? $voucher['id'] : null,
-            'status' => 'pending'
+            'status' => 'pending',
+            'qris_dynamic_id' => $request->input('qris_dynamic_id') ?: null // Store QRIS dynamic ID if provided, otherwise null
         ];
 
         if ($isMember) {

@@ -60,6 +60,7 @@ Route::delete('/cart/remove/{product}', [CartController::class, 'remove'])
 // Checkout routes
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/process-payment', [CheckoutController::class, 'processPayment'])->name('checkout.process-payment');
+Route::post('/checkout/generate-qris', [CheckoutController::class, 'generateQris'])->name('checkout.generate-qris');
 Route::get('/thank-you/{order}', [CheckoutController::class, 'thankYou'])->name('thank-you');
 // Route::get('/generate-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('checkout.generate-pdf');
 Route::get('/generate-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('order.pdf');

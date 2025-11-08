@@ -61,6 +61,7 @@ class Order extends Model
         'transaction_id',
         'payment_url',
         'payment_details',
+        'qris_dynamic_id',
     ];
 
     protected $casts = [
@@ -96,6 +97,11 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function qrisDynamic(): BelongsTo
+    {
+        return $this->belongsTo(QrisDynamic::class, 'qris_dynamic_id');
     }
 }
 

@@ -167,6 +167,20 @@
                 </div>
             @endif
 
+            @if($order->qrisDynamic && $order->status === 'pending')
+                <div class="p-4 mt-4 bg-blue-50 rounded-md">
+                    <h3 class="mb-3 font-medium text-center">Scan QRIS untuk Pembayaran</h3>
+                    <div class="flex flex-col items-center">
+                        <img src="{{ asset('storage/' . $order->qrisDynamic->qr_image_path) }}" 
+                             alt="QRIS Code" 
+                             class="mb-3 w-64 h-64 border-2 border-gray-300 rounded">
+                        <p class="mb-2 text-lg font-semibold">Total: Rp {{ number_format($order->total_amount ?? $order->total_price, 0, ',', '.') }}</p>
+                        <p class="text-sm text-gray-600 text-center">Scan QR code dengan aplikasi pembayaran Anda</p>
+                        <p class="mt-2 text-xs text-gray-500">Merchant: {{ $order->qrisDynamic->merchant_name }}</p>
+                    </div>
+                </div>
+            @endif
+
             @php
                 $paymentDetails = json_decode($order->payment_details ?? '{}');
                 $vaNumbers = $paymentDetails->va_numbers ?? [];
