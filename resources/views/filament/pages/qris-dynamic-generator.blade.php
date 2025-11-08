@@ -101,6 +101,17 @@
             </x-filament::card>
         @endif
 
+        {{-- Generated QRIS History Table --}}
+        <x-filament::card>
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <x-heroicon-o-clock class="w-5 h-5 mr-2 text-primary-500" />
+                    Generated QRIS History
+                </h3>
+                {{ $this->table }}
+            </div>
+        </x-filament::card>
+
         {{-- Info Card --}}
         <x-filament::card>
             <div class="space-y-3">
@@ -114,6 +125,7 @@
                     <li>Optionally add a fee (fixed amount or percentage)</li>
                     <li>Click "Generate Dynamic QRIS" to create the QR code</li>
                     <li>Download the QR image or copy the QRIS string for payment processing</li>
+                    <li>All generated QRIS will be saved in the history table below</li>
                 </ul>
             </div>
         </x-filament::card>

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\QrisDynamic;
 use App\Models\QrisStatic;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Endroid\QrCode\Builder\Builder;
@@ -15,12 +16,18 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class QrisDynamicGenerator extends Page implements HasForms
+class QrisDynamicGenerator extends Page implements HasForms, HasTable
 {
-    use HasPageShield, InteractsWithForms;
+    use HasPageShield, InteractsWithForms, InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-qr-code';
 
@@ -100,6 +107,101 @@ class QrisDynamicGenerator extends Page implements HasForms
             ->statePath('data');
     }
 
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(QrisDynamic::query()->latest())
+            ->columns([
+                TextColumn::make('merchant_name')
+                    ->label('Merchant')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('amount')
+                    ->label('Amount')
+                    ->money('IDR')
+                    ->sortable(),
+                TextColumn::make('fee_type')
+                    ->label('Fee Type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Rupiah' => 'success',
+                        'Persentase' => 'info',
+                        default => 'gray',
+                    }),
+                TextColumn::make('fee_value')
+                    ->label('Fee Value')
+                    ->formatStateUsing(fn ($record) => $record->fee_type === 'Persentase' 
+                        ? $record->fee_value . '%' 
+                        : 'Rp ' . number_format($record->fee_value, 0, ',', '.')),
+                TextColumn::make('qrisStatic.name')
+                    ->label('Source QRIS')
+                    ->default('-')
+                    ->searchable(),
+                TextColumn::make('creator.name')
+                    ->label('Created By')
+                    ->default('-')
+                    ->searchable(),
+                TextColumn::make('created_at')
+                    ->label('Generated At')
+                    ->dateTime('d M Y H:i')
+                    ->sortable(),
+            ])
+            ->actions([
+                Action::make('download')
+                    ->label('Download')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function (QrisDynamic $record) {
+                        if (!$record->qr_image_path || !Storage::disk('public')->exists($record->qr_image_path)) {
+                            Notification::make()
+                                ->title('Image Not Found')
+                                ->body('QR code image is not available.')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
+                        $recordId = $record->getKey();
+                        return response()->download(
+                            Storage::disk('public')->path($record->qr_image_path),
+                            'qris-dynamic-' . $recordId . '-' . now()->format('YmdHis') . '.png'
+                        );
+                    }),
+                Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->modalHeading('QRIS Details')
+                    ->modalContent(fn (QrisDynamic $record) => view('filament.pages.qris-dynamic-view', ['record' => $record]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
+                DeleteAction::make()
+                    ->label('Delete')
+                    ->before(function (QrisDynamic $record) {
+                        // Delete QR image file
+                        if ($record->qr_image_path && Storage::disk('public')->exists($record->qr_image_path)) {
+                            Storage::disk('public')->delete($record->qr_image_path);
+                        }
+                    })
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('QRIS Deleted')
+                            ->body('Dynamic QRIS has been deleted successfully.')
+                    ),
+            ])
+            ->bulkActions([
+                \Filament\Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            if ($record->qr_image_path && Storage::disk('public')->exists($record->qr_image_path)) {
+                                Storage::disk('public')->delete($record->qr_image_path);
+                            }
+                        }
+                    }),
+            ]);
+    }
+
     public function generate(): void
     {
         $data = $this->form->getState();
@@ -115,10 +217,23 @@ class QrisDynamicGenerator extends Page implements HasForms
             );
 
             // Generate and save QR code image
-            $this->generateQrImage();
+            $qrImagePath = $this->generateQrImage();
+
+            // Save to database
+            QrisDynamic::create([
+                'qris_static_id' => $data['saved_qris'] ?? null,
+                'merchant_name' => $this->merchantName,
+                'qris_string' => $this->dynamicQris,
+                'amount' => $data['amount'],
+                'fee_type' => $data['fee_type'] ?? 'Rupiah',
+                'fee_value' => $data['fee_value'] ?? 0,
+                'qr_image_path' => $qrImagePath,
+                'created_by' => auth()->id(),
+            ]);
 
             Notification::make()
                 ->title('Dynamic QRIS Generated Successfully')
+                ->body('QRIS has been saved to the list below.')
                 ->success()
                 ->send();
         } catch (\Exception $e) {
@@ -130,10 +245,10 @@ class QrisDynamicGenerator extends Page implements HasForms
         }
     }
 
-    protected function generateQrImage(): void
+    protected function generateQrImage(): ?string
     {
         if (! $this->dynamicQris) {
-            return;
+            return null;
         }
 
         try {
@@ -151,16 +266,19 @@ class QrisDynamicGenerator extends Page implements HasForms
             $result = $builder->build();
 
             // Save to storage
-            $filename = 'qris-dynamic-'.now()->format('YmdHis').'-'.uniqid().'.png';
-            Storage::disk('public')->put('qris-generated/'.$filename, $result->getString());
+            $filename = 'qris-generated/qris-dynamic-'.now()->format('YmdHis').'-'.uniqid().'.png';
+            Storage::disk('public')->put($filename, $result->getString());
 
             // Store filename in session for download
             session(['last_generated_qr' => $filename]);
 
             Log::info('QR code image generated: '.$filename);
+
+            return $filename;
         } catch (\Exception $e) {
             Log::error('Error generating QR image: '.$e->getMessage());
             Log::error('Stack trace: '.$e->getTraceAsString());
+            return null;
         }
     }
 
