@@ -21,7 +21,7 @@ class QrisStaticResource extends Resource
 
     protected static ?string $navigationLabel = 'QRIS Statis';
 
-    protected static ?string $navigationGroup = 'Menejemen keuangan';
+    protected static ?string $navigationGroup = 'Manajemen Keuangan';
 
     protected static ?int $navigationSort = 5;
 
