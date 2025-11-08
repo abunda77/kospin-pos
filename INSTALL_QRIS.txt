@@ -1,0 +1,70 @@
+========================================
+INSTALASI QRIS STATIC RESOURCE
+========================================
+
+Langkah-langkah instalasi:
+
+1. Install library QR code reader:
+   composer require khanamiryan/qrcode-detector-decoder
+
+2. Jalankan migrasi database:
+   php artisan migrate
+
+3. Link storage (jika belum):
+   php artisan storage:link
+
+4. Akses menu di Filament:
+   Menejemen keuangan > QRIS Statis
+
+========================================
+FILE YANG DIBUAT
+========================================
+
+Models:
+- app/Models/QrisStatic.php
+
+Helpers:
+- app/Helpers/QrisHelper.php
+
+Resources:
+- app/Filament/Resources/QrisStaticResource.php
+- app/Filament/Resources/QrisStaticResource/Pages/CreateQrisStatic.php
+- app/Filament/Resources/QrisStaticResource/Pages/EditQrisStatic.php
+- app/Filament/Resources/QrisStaticResource/Pages/ListQrisStatics.php
+
+Views:
+- resources/views/filament/resources/qris-static/view-modal.blade.php
+
+Migrations:
+- database/migrations/2025_11_08_080454_create_qris_statics_table.php
+
+Dokumentasi:
+- QRIS_SETUP.md
+- app/Filament/Resources/QrisStaticResource/README.md
+- INSTALL_QRIS.txt (file ini)
+
+========================================
+FITUR
+========================================
+
+✓ Upload gambar QRIS (PNG/JPG)
+✓ Auto-extract string QRIS dari gambar
+✓ Auto-detect nama merchant
+✓ Paste string QRIS manual
+✓ View modal dengan QR code
+✓ Copy string QRIS
+✓ Filter status aktif/tidak aktif
+✓ Search nama dan merchant
+✓ Manajemen CRUD lengkap
+
+========================================
+CATATAN
+========================================
+
+- Library khanamiryan/qrcode-detector-decoder diperlukan untuk ekstraksi QR dari gambar
+- Folder storage/app/public/qris-images akan dibuat otomatis
+- Resource masuk dalam grup "Menejemen keuangan"
+- Navigation sort: 5
+- Icon: heroicon-o-qr-code
+
+========================================
