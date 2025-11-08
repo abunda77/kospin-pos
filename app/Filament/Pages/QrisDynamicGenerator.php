@@ -22,6 +22,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -228,7 +229,7 @@ class QrisDynamicGenerator extends Page implements HasForms, HasTable
                 'fee_type' => $data['fee_type'] ?? 'Rupiah',
                 'fee_value' => $data['fee_value'] ?? 0,
                 'qr_image_path' => $qrImagePath,
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             Notification::make()
@@ -286,7 +287,7 @@ class QrisDynamicGenerator extends Page implements HasForms, HasTable
     {
         $filename = session('last_generated_qr');
 
-        if (! $filename || ! Storage::disk('public')->exists('qris-generated/'.$filename)) {
+        if (! $filename || ! Storage::disk('public')->exists($filename)) {
             Notification::make()
                 ->title('Image Not Found')
                 ->body('Please generate QRIS first.')
@@ -297,7 +298,7 @@ class QrisDynamicGenerator extends Page implements HasForms, HasTable
         }
 
         return response()->download(
-            Storage::disk('public')->path('qris-generated/'.$filename),
+            Storage::disk('public')->path($filename),
             'qris-dynamic-'.now()->format('YmdHis').'.png'
         );
     }
