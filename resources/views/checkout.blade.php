@@ -244,6 +244,10 @@
                                 <option value="bca">BCA</option>
                                 <option value="bni">BNI</option>
                                 <option value="bri">BRI</option>
+                                <option value="cimb">CIMB</option>
+                                <option value="bank_lain">Bank Lain</option>
+                               
+                                
                             </select>
                         </div>
                     </div>
@@ -362,9 +366,6 @@
             if (gateway === 'midtrans') {
                 paymentDetails.classList.remove('hidden');
 
-                // Default to bank transfer if no specific method is detected
-                bankTransferForm.classList.remove('hidden');
-
                 // Tambahkan opsi untuk memilih jenis pembayaran Midtrans
                 const paymentTypeSelector = document.createElement('div');
                 paymentTypeSelector.className = 'mb-4';
@@ -374,6 +375,10 @@
                         <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
                             <input type="radio" name="payment_type" value="bank_transfer" checked class="mr-2">
                             <span>Bank Transfer</span>
+                        </label>
+                        <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="payment_type" value="gopay" class="mr-2">
+                            <span>GoPay / E-Wallet</span>
                         </label>
                     </div>
                 `;

@@ -738,7 +738,22 @@ class CheckoutController extends Controller
             $order->payment_details = json_encode($notification);
             $order->save();
 
-            return response()->json(['status' => 'success']);
+            // Return response sesuai format Midtrans notification
+            return response()->json([
+                'transaction_time' => $notification->transaction_time ?? now()->format('Y-m-d H:i:s'),
+                'transaction_status' => $notification->transaction_status ?? 'unknown',
+                'transaction_id' => $notification->transaction_id ?? null,
+                'status_message' => 'midtrans payment notification',
+                'status_code' => $notification->status_code ?? '200',
+                'signature_key' => $notification->signature_key ?? null,
+                'settlement_time' => $notification->settlement_time ?? null,
+                'payment_type' => $notification->payment_type ?? null,
+                'order_id' => $notification->order_id ?? null,
+                'merchant_id' => $notification->merchant_id ?? null,
+                'gross_amount' => $notification->gross_amount ?? $order->total_amount,
+                'fraud_status' => $notification->fraud_status ?? null,
+                'currency' => $notification->currency ?? 'IDR'
+            ]);
         } catch (\Exception $e) {
         Log::error('Gateway Notification Error: ' . $e->getMessage());
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);

@@ -59,7 +59,22 @@ class WebhookController extends Controller
             $order->save();
         }
 
-        return response()->json(['status' => 'success']);
+        // Return response sesuai format Midtrans notification
+        return response()->json([
+            'transaction_time' => $payload['transaction_time'] ?? now()->format('Y-m-d H:i:s'),
+            'transaction_status' => $payload['transaction_status'] ?? 'unknown',
+            'transaction_id' => $payload['transaction_id'] ?? null,
+            'status_message' => 'midtrans payment notification',
+            'status_code' => $payload['status_code'] ?? '200',
+            'signature_key' => $payload['signature_key'] ?? null,
+            'settlement_time' => $payload['settlement_time'] ?? null,
+            'payment_type' => $payload['payment_type'] ?? null,
+            'order_id' => $payload['order_id'] ?? null,
+            'merchant_id' => $payload['merchant_id'] ?? null,
+            'gross_amount' => $payload['gross_amount'] ?? $order->total_amount,
+            'fraud_status' => $payload['fraud_status'] ?? null,
+            'currency' => $payload['currency'] ?? 'IDR'
+        ]);
     }
 }
 
