@@ -259,8 +259,38 @@
 
                     <!-- Form untuk GoPay -->
                     <div id="gopay-form" class="hidden payment-type-form">
-                        <h3 class="mb-3 font-medium">GoPay</h3>
-                        <p class="text-sm text-gray-600">Anda akan diarahkan ke halaman GoPay untuk menyelesaikan pembayaran.</p>
+                        <h3 class="mb-3 font-medium text-center">QRIS / GoPay / E-Wallet</h3>
+                        
+                        <!-- GoPay QR Display -->
+                        <div id="gopay-qr-display" class="flex flex-col items-center">
+                            <div id="gopay-qr-loading" class="flex flex-col items-center">
+                                <svg class="w-12 h-12 mb-2 animate-spin text-green-600" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p class="text-sm text-gray-600">Generating GoPay QR Code...</p>
+                            </div>
+                            
+                            <div id="gopay-qr-content" class="hidden flex flex-col items-center">
+                                <img id="gopay-qr-image" src="" alt="GoPay QR Code" class="mb-3 w-64 h-64 border-2 border-gray-300 rounded">
+                                <p class="mb-2 text-lg font-semibold">Total: Rp <span id="gopay-amount">{{ number_format($total, 0, ',', '.') }}</span></p>
+                                <p class="text-sm text-center text-gray-600 mb-2">Scan QR code dengan aplikasi GoPay, Gojek, atau aplikasi QRIS lainnya</p>
+                                <div class="flex gap-2 mt-2">
+                                    <a id="gopay-deeplink" href="#" class="hidden px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700">
+                                        Buka GoPay App
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div id="gopay-qr-error" class="hidden text-center text-red-600">
+                                <p class="mb-2">Gagal generate GoPay QR Code</p>
+                                <button type="button" onclick="retryGopayGeneration()" class="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700">
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="gopay_transaction_id" id="gopay_transaction_id">
                     </div>
                 </div>
 
@@ -388,7 +418,7 @@
                             </label>
                             <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
                                 <input type="radio" name="payment_type" value="gopay" class="mr-2">
-                                <span>GoPay / E-Wallet</span>
+                                <span>QRIS / Gopay / E-Wallet</span>
                             </label>
                         </div>
                     `;
@@ -412,6 +442,8 @@
                                 bankTransferForm.classList.remove('hidden');
                             } else if (this.value === 'gopay') {
                                 gopayForm.classList.remove('hidden');
+                                // Generate GoPay QR Code when selected
+                                generateGopayQr();
                             }
                         });
                     });
@@ -688,6 +720,68 @@
 
     function retryQrisGeneration() {
         generateQrisDynamic();
+    }
+
+    // GoPay QR Code Functions
+    function generateGopayQr() {
+        const gopayQrLoading = document.getElementById('gopay-qr-loading');
+        const gopayQrContent = document.getElementById('gopay-qr-content');
+        const gopayQrError = document.getElementById('gopay-qr-error');
+
+        // Show loading
+        gopayQrLoading.classList.remove('hidden');
+        gopayQrContent.classList.add('hidden');
+        gopayQrError.classList.add('hidden');
+
+        // Get total amount from page
+        const totalAmount = {{ $total }};
+
+        // Send request to generate GoPay QR
+        fetch('/checkout/generate-gopay-qr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                amount: totalAmount,
+                order_id: 'ORDER-' + Date.now()
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Hide loading, show content
+                gopayQrLoading.classList.add('hidden');
+                gopayQrContent.classList.remove('hidden');
+
+                // Set QR image from actions
+                if (data.qr_code_url) {
+                    document.getElementById('gopay-qr-image').src = data.qr_code_url;
+                }
+                
+                // Set deeplink if available
+                if (data.deeplink_url) {
+                    const deeplinkBtn = document.getElementById('gopay-deeplink');
+                    deeplinkBtn.href = data.deeplink_url;
+                    deeplinkBtn.classList.remove('hidden');
+                }
+                
+                document.getElementById('gopay-amount').textContent = data.amount_formatted || '{{ number_format($total, 0, ',', '.') }}';
+                document.getElementById('gopay_transaction_id').value = data.transaction_id;
+            } else {
+                throw new Error(data.message || 'Failed to generate GoPay QR');
+            }
+        })
+        .catch(error => {
+            console.error('GoPay QR Generation Error:', error);
+            gopayQrLoading.classList.add('hidden');
+            gopayQrError.classList.remove('hidden');
+        });
+    }
+
+    function retryGopayGeneration() {
+        generateGopayQr();
     }
 </script>
 @endpush

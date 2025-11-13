@@ -860,6 +860,81 @@ class CheckoutController extends Controller
             return redirect()->back()->with('error', 'Gagal memeriksa status transaksi: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Generate GoPay QR Code via Midtrans
+     */
+    public function generateGopayQr(Request $request)
+    {
+        try {
+            $request->validate([
+                'amount' => 'required|numeric|min:1',
+                'order_id' => 'required|string'
+            ]);
+
+            // Initialize Midtrans Config
+            Config::$serverKey = config('services.midtrans.server_key');
+            Config::$isProduction = (bool) config('services.midtrans.is_production');
+            Config::$isSanitized = true;
+            Config::$is3ds = true;
+
+            $amount = $request->input('amount');
+            $orderId = $request->input('order_id');
+
+            // Prepare transaction parameters for GoPay
+            $params = [
+                'payment_type' => 'gopay',
+                'transaction_details' => [
+                    'order_id' => $orderId,
+                    'gross_amount' => (int) $amount,
+                ],
+                'gopay' => [
+                    'enable_callback' => true,
+                    'callback_url' => route('checkout')
+                ]
+            ];
+
+            // Charge transaction via Midtrans Core API
+            $response = CoreApi::charge($params);
+
+            Log::info('GoPay QR Response:', ['response' => $response]);
+
+            // Extract QR code URL and deeplink from actions
+            $qrCodeUrl = null;
+            $deeplinkUrl = null;
+
+            if (isset($response->actions) && is_array($response->actions)) {
+                foreach ($response->actions as $action) {
+                    if ($action->name === 'generate-qr-code') {
+                        $qrCodeUrl = $action->url;
+                    } elseif ($action->name === 'deeplink-redirect') {
+                        $deeplinkUrl = $action->url;
+                    }
+                }
+            }
+
+            if (!$qrCodeUrl) {
+                throw new \Exception('QR Code URL not found in response');
+            }
+
+            return response()->json([
+                'success' => true,
+                'transaction_id' => $response->transaction_id,
+                'qr_code_url' => $qrCodeUrl,
+                'deeplink_url' => $deeplinkUrl,
+                'amount_formatted' => number_format($amount, 0, ',', '.'),
+                'status' => $response->transaction_status
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('GoPay QR Generation Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate GoPay QR: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
-
-
