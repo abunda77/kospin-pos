@@ -241,14 +241,19 @@
                         <div class="mb-3">
                             <label for="bank" class="block mb-1 text-sm font-medium text-gray-700">Pilih Bank</label>
                             <select name="bank" id="bank" class="px-3 py-2 w-full rounded-md border border-gray-300">
-                                <option value="bca">BCA</option>
-                                <option value="bni">BNI</option>
-                                <option value="bri">BRI</option>
-                                <option value="cimb">CIMB</option>
-                                <option value="bank_lain">Bank Lain</option>
-                               
-                                
+                                <option value="">-- Pilih Bank --</option>
+                                <option value="bca">BCA Virtual Account</option>
+                                <option value="bni">BNI Virtual Account</option>
+                                <option value="bri">BRI Virtual Account</option>
+                                <option value="mandiri">Mandiri Virtual Account</option>
+                                <option value="permata">Permata Virtual Account</option>
+                                <option value="cimb">CIMB Niaga Virtual Account</option>
+                                <option value="other">Bank Lainnya</option>
                             </select>
+                        </div>
+                        <div class="p-3 text-sm rounded-md bg-blue-50 text-blue-700">
+                            <p class="font-medium mb-1">Informasi:</p>
+                            <p>Anda akan mendapatkan nomor Virtual Account setelah konfirmasi pembayaran.</p>
                         </div>
                     </div>
 
@@ -366,29 +371,32 @@
             if (gateway === 'midtrans') {
                 paymentDetails.classList.remove('hidden');
 
-                // Tambahkan opsi untuk memilih jenis pembayaran Midtrans
-                const paymentTypeSelector = document.createElement('div');
-                paymentTypeSelector.className = 'mb-4';
-                paymentTypeSelector.innerHTML = `
-                    <label class="block mb-2 text-sm font-medium text-gray-700">Pilih Jenis Pembayaran</label>
-                    <div class="grid grid-cols-1 gap-2">
-                        <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="payment_type" value="bank_transfer" checked class="mr-2">
-                            <span>Bank Transfer</span>
-                        </label>
-                        <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="payment_type" value="gopay" class="mr-2">
-                            <span>GoPay / E-Wallet</span>
-                        </label>
-                    </div>
-                `;
-
-                // Tambahkan selector ke payment details
-                if (!document.getElementById('payment-type-selector')) {
-                    paymentDetails.insertBefore(paymentTypeSelector, paymentDetails.firstChild);
+                // Check if selector already exists
+                let paymentTypeSelector = document.getElementById('payment-type-selector');
+                
+                if (!paymentTypeSelector) {
+                    // Create selector only if it doesn't exist
+                    paymentTypeSelector = document.createElement('div');
+                    paymentTypeSelector.className = 'mb-4';
                     paymentTypeSelector.id = 'payment-type-selector';
+                    paymentTypeSelector.innerHTML = `
+                        <label class="block mb-2 text-sm font-medium text-gray-700">Pilih Jenis Pembayaran</label>
+                        <div class="grid grid-cols-1 gap-2">
+                            <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="payment_type" value="bank_transfer" checked class="mr-2">
+                                <span>Bank Transfer</span>
+                            </label>
+                            <label class="flex items-center p-2 rounded border cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="payment_type" value="gopay" class="mr-2">
+                                <span>GoPay / E-Wallet</span>
+                            </label>
+                        </div>
+                    `;
 
-                    // Tambahkan event listener untuk radio buttons
+                    // Add selector to payment details
+                    paymentDetails.insertBefore(paymentTypeSelector, paymentDetails.firstChild);
+
+                    // Add event listener for radio buttons
                     const paymentTypeRadios = document.querySelectorAll('input[name="payment_type"]');
                     paymentTypeRadios.forEach(radio => {
                         radio.addEventListener('change', function() {
@@ -407,11 +415,15 @@
                             }
                         });
                     });
-
-                    // Pastikan formulir default tampil (Bank Transfer)
-                    document.querySelector('input[name="payment_type"][value="bank_transfer"]').checked = true;
-                    bankTransferForm.classList.remove('hidden');
                 }
+
+                // Always show bank transfer form as default
+                const bankTransferRadio = document.querySelector('input[name="payment_type"][value="bank_transfer"]');
+                if (bankTransferRadio) {
+                    bankTransferRadio.checked = true;
+                }
+                bankTransferForm.classList.remove('hidden');
+                
             } else {
                 // For non-gateway payment methods (e.g., cash)
                 paymentDetails.classList.add('hidden');
@@ -482,6 +494,22 @@
                 if (value.length > 4) value = value.slice(0, 4);
                 e.target.value = value;
             });
+        }
+
+        // Auto-select first Midtrans payment method and show bank transfer form on page load
+        const firstMidtransMethod = Array.from(paymentMethodOptions).find(option => 
+            option.dataset.gateway === 'midtrans'
+        );
+        
+        if (firstMidtransMethod) {
+            // Auto-click the first Midtrans method to show the form
+            const radio = firstMidtransMethod.querySelector('input[type="radio"]');
+            radio.checked = true;
+            firstMidtransMethod.classList.remove('border-gray-200');
+            firstMidtransMethod.classList.add('border-blue-500');
+            
+            // Show payment details with bank transfer as default
+            showPaymentForm('midtrans', 'Midtrans');
         }
 
         // Fix form submission
