@@ -105,12 +105,39 @@ Route [checkout.index] not defined
 
 ---
 
-### Issue 3: Error "QR Code URL not found in response"
+### Issue 3: Error "Payment channel is not activated" (HTTP 402)
+
+**Gejala:**
+```
+Midtrans API is returning API error. HTTP status code: 402
+API response: {"status_code":"402","status_message":"Payment channel is not activated."}
+```
+
+**Artinya:**
+- ✅ Credentials BENAR (API bisa diakses)
+- ❌ GoPay belum diaktifkan di Production Dashboard
+
+**Solusi:**
+1. Login ke [Midtrans Dashboard Production](https://dashboard.midtrans.com/)
+2. Pastikan toggle menunjukkan **"Production"** (bukan Sandbox)
+3. Settings → Payment Configuration
+4. Aktifkan **GoPay/E-Wallet**
+5. Isi form business information
+6. Submit untuk approval
+7. Tunggu email konfirmasi (1-3 hari kerja)
+
+**Sementara Waktu:**
+- Gunakan Sandbox untuk testing
+- Atau gunakan payment method lain (VA, Credit Card)
+
+---
+
+### Issue 4: Error "QR Code URL not found in response"
 
 **Kemungkinan Penyebab:**
-1. GoPay belum diaktifkan di Midtrans Dashboard
-2. Response format dari Midtrans berubah
-3. Midtrans API error
+1. Response format dari Midtrans berubah
+2. Midtrans API error
+3. Network timeout
 
 **Cara Cek:**
 ```php
@@ -119,14 +146,11 @@ Log::info('Full Midtrans Response:', ['response' => json_encode($response)]);
 ```
 
 **Solusi:**
-1. Login ke [Midtrans Dashboard](https://dashboard.midtrans.com/)
-2. Settings → Payment Methods
-3. Aktifkan **GoPay/E-Wallet**
-4. Save dan tunggu approval (jika diperlukan)
+Cek log untuk melihat response sebenarnya dari Midtrans
 
 ---
 
-### Issue 4: Credentials Invalid
+### Issue 5: Credentials Invalid
 
 **Gejala:**
 - Error 401 Unauthorized
@@ -155,7 +179,7 @@ php artisan tinker
 
 ---
 
-### Issue 5: CORS Error
+### Issue 6: CORS Error
 
 **Gejala:**
 ```
