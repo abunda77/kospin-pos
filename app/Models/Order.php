@@ -26,11 +26,17 @@ class Order extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
 
-            // Generate sequential no_order
+            // Generate sequential no_order with database lock to prevent race condition
             if (empty($model->no_order)) {
-                $lastOrder = static::orderBy('no_order', 'desc')->first();
-                $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
-                $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+                \DB::transaction(function () use ($model) {
+                    // Lock the last order row to prevent concurrent reads
+                    $lastOrder = static::orderBy('no_order', 'desc')
+                        ->lockForUpdate()
+                        ->first();
+                    
+                    $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
+                    $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+                });
             }
 
             // Set current user as cashier if not set
