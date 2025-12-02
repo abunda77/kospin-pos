@@ -518,26 +518,32 @@ class CheckoutController extends Controller
             $orderData['address'] = $request->address;
         }
 
-        // Buat order dengan status pending
-        $order = Order::create($orderData);
 
-        // Simpan order products
-        foreach ($cart as $id => $item) {
-            OrderProduct::create([
-                'order_id' => $order->id,
-                'product_id' => $id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price']
-            ]);
-        }
+        // Buat order dengan status pending (wrapped in transaction to prevent race conditions)
+        $order = \DB::transaction(function () use ($orderData, $cart, $voucher) {
+            $order = Order::create($orderData);
 
-        // Kurangi stok voucher jika digunakan
-        if ($voucher) {
-            $voucherModel = VoucherDiskon::find($voucher['id']);
-            if ($voucherModel) {
-                $voucherModel->decrement('stok_voucher');
+            // Simpan order products
+            foreach ($cart as $id => $item) {
+                OrderProduct::create([
+                    'order_id' => $order->id,
+                    'product_id' => $id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price']
+                ]);
             }
-        }
+
+            // Kurangi stok voucher jika digunakan
+            if ($voucher) {
+                $voucherModel = VoucherDiskon::find($voucher['id']);
+                if ($voucherModel) {
+                    $voucherModel->decrement('stok_voucher');
+                }
+            }
+
+            return $order;
+        });
+
 
         // Jika payment method menggunakan gateway
         if ($paymentMethod->gateway) {

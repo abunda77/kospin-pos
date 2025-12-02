@@ -26,9 +26,13 @@ class Order extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
 
-            // Generate sequential no_order
+            // Generate sequential no_order with pessimistic locking to prevent duplicates
             if (empty($model->no_order)) {
-                $lastOrder = static::orderBy('no_order', 'desc')->first();
+                // Lock the last order row to prevent race conditions
+                $lastOrder = static::orderBy('no_order', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+                
                 $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
                 $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
             }
