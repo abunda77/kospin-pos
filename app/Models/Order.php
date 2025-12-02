@@ -71,7 +71,8 @@ class Order extends Model
     public static function generateNextOrderNumber(): string
     {
         // Lock the last order to prevent race conditions
-        $lastOrder = static::orderBy('no_order', 'desc')
+        // Use CAST to ensure numeric sorting instead of string sorting
+        $lastOrder = static::orderByRaw('CAST(no_order AS UNSIGNED) DESC')
             ->lockForUpdate()
             ->first();
         
