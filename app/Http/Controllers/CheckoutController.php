@@ -868,7 +868,7 @@ class CheckoutController extends Controller
 
             // Update order status
             $order->payment_details = json_encode($status);
-            $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'pending');
+            $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'completed');
             $order->save();
 
             return redirect()->route('thank-you', $order->id)->with('status', 'Status pembayaran berhasil diperbarui');
