@@ -26,16 +26,20 @@ class Order extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
 
-            // Generate unique no_order using timestamp to avoid race conditions
+            // Generate unique no_order with random prefix
             if (empty($model->no_order)) {
-                $prefix = 'ORD-';
-                // Format: ORD-YYMMDDHHMMSS-RRR (e.g., ORD-251202193000-123)
-                // This ensures chronological sorting and uniqueness
-                $timestamp = now()->format('ymdHis');
-                
                 do {
-                    $random = str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
-                    $candidate = $prefix . $timestamp . $random;
+                    // Generate random 3-letter prefix (A-Z)
+                    $prefix = '';
+                    for ($i = 0; $i < 3; $i++) {
+                        $prefix .= chr(rand(65, 90)); // A-Z
+                    }
+                    
+                    // Use timestamp-based number (last 5 digits of microtime)
+                    $number = substr((string) (microtime(true) * 10000), -5);
+                    
+                    // Format: ABC-12345 (e.g., UHJ-45678)
+                    $candidate = $prefix . '-' . $number;
                 } while (static::where('no_order', $candidate)->exists());
                 
                 $model->no_order = $candidate;
