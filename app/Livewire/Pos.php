@@ -393,32 +393,40 @@ class Pos extends Component implements HasForms
             $nama_customer = $anggota->nama_lengkap;
         }
 
-        // Buat order baru dengan status 'completed'
-        $order = Order::create([
-            'name' => $nama_customer ?: $this->name_customer,
-            'total_price' => $total_price,
-            'payment_method_id' => $payment_method_id_temp,
-            'anggota_id' => $this->anggota_id,
-            'discount' => $this->discount,
-            'status' => 'completed',
-            'user_id' => Auth::id() // Gunakan Auth facade
-        ]);
-
-        // Update total pembelian anggota jika ada
-        if ($this->anggota_id) {
-            $anggota = Anggota::find($this->anggota_id);
-            $anggota->total_pembelian = $anggota->total_pembelian + $total_price;
-            $anggota->save();
-        }
-
-        foreach($this->order_items as $item) {
-            OrderProduct::create([
-                'order_id' => $order->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['price']
+        // Buat order baru dengan status 'completed' dalam transaction
+        $order = \DB::transaction(function () use ($nama_customer, $total_price, $payment_method_id_temp) {
+            // Generate sequential no_order with database locking
+            $noOrder = Order::generateNextOrderNumber();
+            
+            $order = Order::create([
+                'no_order' => $noOrder,
+                'name' => $nama_customer ?: $this->name_customer,
+                'total_price' => $total_price,
+                'payment_method_id' => $payment_method_id_temp,
+                'anggota_id' => $this->anggota_id,
+                'discount' => $this->discount,
+                'status' => 'completed',
+                'user_id' => Auth::id() // Gunakan Auth facade
             ]);
-        }
+
+            // Update total pembelian anggota jika ada
+            if ($this->anggota_id) {
+                $anggota = Anggota::find($this->anggota_id);
+                $anggota->total_pembelian = $anggota->total_pembelian + $total_price;
+                $anggota->save();
+            }
+
+            foreach($this->order_items as $item) {
+                OrderProduct::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['price']
+                ]);
+            }
+            
+            return $order;
+        });
 
          // Simpan ID order untuk cetak
         $this->orderToPrint = $order->id;
@@ -439,6 +447,7 @@ class Pos extends Component implements HasForms
         $this->anggota_id = null;
         $this->discount = 0;
         session()->forget(['orderItems']);
+
 
     }
 

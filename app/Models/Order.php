@@ -26,17 +26,6 @@ class Order extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
 
-            // Generate sequential no_order with pessimistic locking to prevent duplicates
-            if (empty($model->no_order)) {
-                // Lock the last order row to prevent race conditions
-                $lastOrder = static::orderBy('no_order', 'desc')
-                    ->lockForUpdate()
-                    ->first();
-                
-                $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
-                $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
-            }
-
             // Set current user as cashier if not set
             if (empty($model->user_id) && Auth::check()) {
                 $model->user_id = Auth::id();
@@ -72,6 +61,25 @@ class Order extends Model
         'payment_details' => 'json',
         'birthday' => 'date',
     ];
+
+    /**
+     * Generate next sequential order number with database locking
+     * This method MUST be called within a database transaction
+     * 
+     * @return string
+     */
+    public static function generateNextOrderNumber(): string
+    {
+        // Lock the last order to prevent race conditions
+        $lastOrder = static::orderBy('no_order', 'desc')
+            ->lockForUpdate()
+            ->first();
+        
+        $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
+        
+        return str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+    }
+
 
     public function paymentMethod(): BelongsTo
     {

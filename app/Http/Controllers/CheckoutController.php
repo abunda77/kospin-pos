@@ -273,42 +273,52 @@ class CheckoutController extends Controller
         // Hitung total setelah diskon
         $total = $subtotal - $discount;
 
-        // Buat order
-        $order = Order::create([
-            'payment_method_id' => $request->payment_method_id,
-            'name' => $request->name,
-            'whatsapp' => $request->whatsapp,
-            'address' => $request->address,
-            'subtotal_amount' => $subtotal,
-            'discount_amount' => $discount,
-            'total_amount' => $total,
-            'total_price' => $total,
-            'voucher_id' => $voucher ? $voucher['id'] : null,
-            'status' => 'pending'
-        ]);
 
-        // Simpan order products
-        foreach ($cart as $id => $item) {
-            OrderProduct::create([
-                'order_id' => $order->id,
-                'product_id' => $id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price']
+        // Buat order dengan transaction untuk mencegah duplicate no_order
+        $order = \DB::transaction(function () use ($request, $subtotal, $discount, $total, $voucher, $cart) {
+            // Generate sequential no_order with database locking
+            $noOrder = Order::generateNextOrderNumber();
+            
+            $order = Order::create([
+                'no_order' => $noOrder,
+                'payment_method_id' => $request->payment_method_id,
+                'name' => $request->name,
+                'whatsapp' => $request->whatsapp,
+                'address' => $request->address,
+                'subtotal_amount' => $subtotal,
+                'discount_amount' => $discount,
+                'total_amount' => $total,
+                'total_price' => $total,
+                'voucher_id' => $voucher ? $voucher['id'] : null,
+                'status' => 'pending'
             ]);
-        }
 
-        // Kurangi stok voucher jika digunakan
-        if ($voucher) {
-            $voucherModel = VoucherDiskon::find($voucher['id']);
-            if ($voucherModel) {
-                $voucherModel->decrement('stok_voucher');
+            // Simpan order products
+            foreach ($cart as $id => $item) {
+                OrderProduct::create([
+                    'order_id' => $order->id,
+                    'product_id' => $id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price']
+                ]);
             }
-        }
+
+            // Kurangi stok voucher jika digunakan
+            if ($voucher) {
+                $voucherModel = VoucherDiskon::find($voucher['id']);
+                if ($voucherModel) {
+                    $voucherModel->decrement('stok_voucher');
+                }
+            }
+            
+            return $order;
+        });
 
         // Bersihkan session
         session()->forget(['cart', 'voucher']);
 
         return redirect()->route('thank-you', $order->id);
+
     }
 
     public function store(Request $request)
@@ -329,31 +339,42 @@ class CheckoutController extends Controller
             }
         }
 
+
         $total = $subtotal - $discount;
 
-        $order = Order::create([
-            // tidak perlu otorisasi user id
-            'total_amount' => $total,
-            'subtotal_amount' => $subtotal,
-            'discount_amount' => $discount,
-            'voucher_id' => $voucher['id'] ?? null,
-            'payment_method' => $request->payment_method,
-            'status' => 'pending'
-        ]);
-
-        foreach ($cart as $productId => $item) {
-            $order->items()->create([
-                'product_id' => $productId,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'subtotal' => $item['quantity'] * $item['unit_price']
+        // Buat order dengan transaction untuk mencegah duplicate no_order
+        $order = \DB::transaction(function () use ($request, $total, $subtotal, $discount, $voucher, $cart) {
+            // Generate sequential no_order with database locking
+            $noOrder = Order::generateNextOrderNumber();
+            
+            $order = Order::create([
+                'no_order' => $noOrder,
+                // tidak perlu otorisasi user id
+                'total_amount' => $total,
+                'subtotal_amount' => $subtotal,
+                'discount_amount' => $discount,
+                'voucher_id' => $voucher['id'] ?? null,
+                'payment_method' => $request->payment_method,
+                'status' => 'pending'
             ]);
-        }
+
+            foreach ($cart as $productId => $item) {
+                $order->items()->create([
+                    'product_id' => $productId,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $item['quantity'] * $item['unit_price']
+                ]);
+            }
+            
+            return $order;
+        });
 
         // Clear cart and voucher from session
         session()->forget(['cart', 'voucher']);
 
         return redirect()->route('thank-you', ['order' => $order->id]);
+
     }
 
     public function thankYou($orderId)
@@ -521,6 +542,9 @@ class CheckoutController extends Controller
 
         // Buat order dengan status pending (wrapped in transaction to prevent race conditions)
         $order = \DB::transaction(function () use ($orderData, $cart, $voucher) {
+            // Generate sequential no_order with database locking
+            $orderData['no_order'] = Order::generateNextOrderNumber();
+            
             $order = Order::create($orderData);
 
             // Simpan order products
@@ -543,6 +567,7 @@ class CheckoutController extends Controller
 
             return $order;
         });
+
 
 
         // Jika payment method menggunakan gateway

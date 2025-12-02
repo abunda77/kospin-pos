@@ -66,31 +66,43 @@ class OrderController extends Controller
             }
         }
 
-        $order = Order::create($request->only([
-            'name',
-            'email',
-            'gender',
-            'phone',
-            'total_price',
-            'notes',
-            'payment_method_id',
-            'paid_amount',
-            'change_amount'
-        ]));
-        
-        foreach($request->items as $item) {
-            $order->orderProducts()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price']
+
+        $order = \DB::transaction(function () use ($request) {
+            // Generate sequential no_order with database locking
+            $noOrder = Order::generateNextOrderNumber();
+            
+            $orderData = $request->only([
+                'name',
+                'email',
+                'gender',
+                'phone',
+                'total_price',
+                'notes',
+                'payment_method_id',
+                'paid_amount',
+                'change_amount'
             ]);
-        }
+            $orderData['no_order'] = $noOrder;
+            
+            $order = Order::create($orderData);
+            
+            foreach($request->items as $item) {
+                $order->orderProducts()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price']
+                ]);
+            }
+            
+            return $order;
+        });
 
         return response()->json([
             'success' => true,
             'message' => 'Sukses melakukan order',
             'data' => $order
         ], 200);
+
 
     }
 }
