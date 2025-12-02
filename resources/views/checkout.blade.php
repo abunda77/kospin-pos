@@ -191,7 +191,7 @@
                             
                             <div class="p-3 mt-4 text-sm text-yellow-800 bg-yellow-100 rounded-md border border-yellow-200">
                                 <p class="font-bold text-center">⚠️ PENTING!</p>
-                                <p class="text-center">Setelah melakukan pembayaran, <strong>WAJIB</strong> tekan tombol <strong>"Bayar Sekarang"</strong> di bawah untuk menyelesaikan pesanan dan menyimpannya ke sistem.</p>
+                                <p class="text-center">Setelah melakukan pembayaran, <strong>WAJIB</strong> tekan tombol <strong>"Checkout"</strong> di bawah untuk menyelesaikan pesanan dan menyimpannya ke sistem.</p>
                             </div>
                         </div>
                         <div id="qris-error" class="hidden text-center text-red-600">
@@ -288,7 +288,7 @@
 
                                 <div class="p-3 mt-4 text-sm text-yellow-800 bg-yellow-100 rounded-md border border-yellow-200">
                                     <p class="font-bold text-center">⚠️ PENTING!</p>
-                                    <p class="text-center">Setelah melakukan pembayaran, <strong>WAJIB</strong> tekan tombol <strong>"Bayar Sekarang"</strong> di bawah untuk menyelesaikan pesanan dan menyimpannya ke sistem.</p>
+                                    <p class="text-center">Setelah melakukan pembayaran, <strong>WAJIB</strong> tekan tombol <strong>"Checkout"</strong> di bawah untuk menyelesaikan pesanan dan menyimpannya ke sistem.</p>
                                 </div>
                             </div>
                             
@@ -307,7 +307,7 @@
 
                 <button type="submit"
                         class="px-4 py-2 mt-4 w-full font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 touch-manipulation">
-                    <span id="btn-text">Bayar Sekarang</span>
+                    <span id="btn-text">Checkout</span>
                     <span id="btn-loading" style="display: none;" class="flex justify-center items-center">
                         <svg class="inline mr-2 w-4 h-4 animate-spin" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>

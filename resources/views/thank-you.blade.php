@@ -143,8 +143,8 @@
 
             @if($order->payment_url)
                 <div class="mt-4">
-                    <a href="{{ $order->payment_url }}" target="_blank" class="inline-block px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                        Lanjutkan Pembayaran
+                    <a href="{{ $order->payment_url }}" class="inline-block px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                        Cek Status Pembayaran
                     </a>
                 </div>
             @endif
