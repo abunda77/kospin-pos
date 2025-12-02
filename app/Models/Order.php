@@ -6,14 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
     use HasFactory;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected static function boot()
@@ -65,22 +66,18 @@ class Order extends Model
     /**
      * Generate next sequential order number with database locking
      * This method MUST be called within a database transaction
-     * 
-     * @return string
      */
     public static function generateNextOrderNumber(): string
     {
-        // Lock the last order to prevent race conditions
-        // Use CAST to ensure numeric sorting instead of string sorting
-        $lastOrder = static::orderByRaw('CAST(no_order AS UNSIGNED) DESC')
-            ->lockForUpdate()
-            ->first();
-        
-        $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
-        
+        // Use raw query to get max order number with locking to prevent race conditions
+        // This bypasses any model caching that might occur in FrankenPHP workers
+        $result = \DB::select('SELECT MAX(CAST(no_order AS UNSIGNED)) as max_order FROM orders FOR UPDATE');
+
+        $maxOrder = $result[0]->max_order ?? 0;
+        $nextNumber = $maxOrder + 1;
+
         return str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
-
 
     public function paymentMethod(): BelongsTo
     {
@@ -117,4 +114,3 @@ class Order extends Model
         return $this->belongsTo(QrisDynamic::class, 'qris_dynamic_id');
     }
 }
-
