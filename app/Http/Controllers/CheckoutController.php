@@ -419,7 +419,7 @@ class CheckoutController extends Controller
         switch ($transactionStatus) {
             case 'capture':
             case 'settlement':
-                return 'completed';
+                return 'processing';
             case 'pending':
                 return 'pending';
             case 'deny':
@@ -863,6 +863,9 @@ class CheckoutController extends Controller
             $order = Order::findOrFail($orderId);
 
             if (!$order->transaction_id || !$order->paymentMethod || !$order->paymentMethod->gateway) {
+                if (request()->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'ID Transaksi atau Gateway Pembayaran tidak ditemukan.']);
+                }
                 return redirect()->back()->with('error', 'ID Transaksi atau Gateway Pembayaran tidak ditemukan.');
             }
 
@@ -871,12 +874,43 @@ class CheckoutController extends Controller
 
             // Update order status
             $order->payment_details = json_encode($status);
-            $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'completed');
+            $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'pending');
             $order->save();
+
+            if (request()->wantsJson()) {
+                $statusColor = [
+                    'pending' => 'bg-yellow-100 text-yellow-800',
+                    'processing' => 'bg-blue-100 text-blue-800',
+                    'completed' => 'bg-green-100 text-green-800',
+                    'failed' => 'bg-red-100 text-red-800',
+                    'cancelled' => 'bg-gray-100 text-gray-800',
+                    'expired' => 'bg-red-100 text-red-800',
+                ][$order->status] ?? 'bg-gray-100 text-gray-800';
+
+                $statusText = [
+                    'pending' => 'Menunggu Pembayaran',
+                    'processing' => 'Sedang Diproses',
+                    'completed' => 'Pembayaran Berhasil',
+                    'failed' => 'Pembayaran Gagal',
+                    'cancelled' => 'Dibatalkan',
+                    'expired' => 'Waktu Pembayaran Habis',
+                ][$order->status] ?? ucfirst($order->status);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => $order->status,
+                    'status_text' => $statusText,
+                    'status_color' => $statusColor,
+                    'message' => 'Status pembayaran berhasil diperbarui'
+                ]);
+            }
 
             return redirect()->route('thank-you', $order->id)->with('status', 'Status pembayaran berhasil diperbarui');
         } catch (\Exception $e) {
             Log::error('Check Transaction Status Error: ' . $e->getMessage());
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal memeriksa status transaksi: ' . $e->getMessage()]);
+            }
             return redirect()->back()->with('error', 'Gagal memeriksa status transaksi: ' . $e->getMessage());
         }
     }

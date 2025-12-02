@@ -131,7 +131,7 @@
                     ][$order->status] ?? ucfirst($order->status);
                 @endphp
 
-                <span class="px-3 py-1 rounded-full text-sm font-medium {{ $statusColor }}">
+                <span id="order-status-badge" class="px-3 py-1 rounded-full text-sm font-medium {{ $statusColor }}">
                     {{ $statusText }}
                 </span>
             </div>
@@ -320,6 +320,44 @@
             // Update countdown setiap 1 detik
             updateCountdown();
             const countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // Real-time Status Check
+        const orderStatus = '{{ $order->status }}';
+        const orderId = '{{ $order->id }}';
+        const checkStatusUrl = '{{ route("checkout.check-status", ":id") }}'.replace(':id', orderId);
+        const statusBadge = document.getElementById('order-status-badge');
+
+        if (orderStatus === 'pending') {
+            const checkStatusInterval = setInterval(function() {
+                fetch(checkStatusUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.status !== 'pending') {
+                            // Update badge
+                            statusBadge.className = `px-3 py-1 rounded-full text-sm font-medium ${data.status_color}`;
+                            statusBadge.textContent = data.status_text;
+                            
+                            // Stop polling
+                            clearInterval(checkStatusInterval);
+
+                            // Optional: Reload page to update other elements (like removing payment buttons)
+                            if (data.status === 'processing' || data.status === 'completed') {
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        }
+                    }
+                })
+                .catch(error => console.error('Error checking status:', error));
+            }, 5000); // Check every 5 seconds
         }
     });
 </script>
