@@ -198,8 +198,9 @@
                     <p class="mt-2 text-sm text-gray-600">Silakan transfer sejumlah <span class="font-semibold">Rp {{ number_format($order->total_amount ?? $order->total_price, 0, ',', '.') }}</span> ke virtual account di atas.</p>
                     @if(isset($paymentDetails->expiry_time))
                         <p class="mt-2 text-sm text-red-600">Batas waktu pembayaran: {{ \Carbon\Carbon::parse($paymentDetails->expiry_time)->format('d M Y H:i') }}</p>
-
+                        
                         <div id="countdown-timer" class="mt-3" data-expiry="{{ $paymentDetails->expiry_time }}">
+                            <!-- Countdown HTML -->
                             <div class="countdown-container">
                                 <div class="countdown-box">
                                     <span id="days" class="countdown-value">00</span>
@@ -226,6 +227,44 @@
                             </div>
                         </div>
                     @endif
+                </div>
+            @elseif(($paymentDetails->payment_type ?? '') === 'gopay' && $order->status === 'pending')
+                <div class="p-4 mt-4 bg-blue-50 rounded-md">
+                    <h3 class="mb-3 font-medium text-center">Scan QRIS / GoPay</h3>
+                    <div class="flex flex-col items-center">
+                        @php
+                            $qrUrl = null;
+                            $deeplinkUrl = null;
+                            if (isset($paymentDetails->actions)) {
+                                foreach ($paymentDetails->actions as $action) {
+                                    if ($action->name === 'generate-qr-code') {
+                                        $qrUrl = $action->url;
+                                    } elseif ($action->name === 'deeplink-redirect') {
+                                        $deeplinkUrl = $action->url;
+                                    }
+                                }
+                            }
+                        @endphp
+
+                        @if($qrUrl)
+                            <img src="{{ $qrUrl }}" alt="GoPay QR Code" class="mb-3 w-64 h-64 border-2 border-gray-300 rounded">
+                        @endif
+                        
+                        <p class="mb-2 text-lg font-semibold">Total: Rp {{ number_format($order->total_amount ?? $order->total_price, 0, ',', '.') }}</p>
+                        <p class="text-sm text-center text-gray-600">Scan QR code dengan aplikasi GoPay, Gojek, atau aplikasi QRIS lainnya</p>
+                        
+                        @if($deeplinkUrl)
+                            <div class="mt-3">
+                                <a href="{{ $deeplinkUrl }}" class="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700">
+                                    Buka GoPay App
+                                </a>
+                            </div>
+                        @endif
+
+                        @if(isset($paymentDetails->expiry_time))
+                            <p class="mt-4 text-sm text-red-600">Batas waktu pembayaran: {{ \Carbon\Carbon::parse($paymentDetails->expiry_time)->format('d M Y H:i') }}</p>
+                        @endif
+                    </div>
                 </div>
             @endif
         </div>

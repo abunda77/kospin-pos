@@ -188,6 +188,11 @@
                             <img id="qris-image" src="" alt="QRIS Code" class="mb-3 w-64 h-64 border-2 border-gray-300 rounded">
                             <p class="mb-2 text-lg font-semibold">Total: Rp <span id="qris-amount">{{ number_format($total, 0, ',', '.') }}</span></p>
                             <p class="text-sm text-gray-600">Scan QR code dengan aplikasi pembayaran Anda</p>
+                            
+                            <div class="p-3 mt-4 text-sm text-yellow-800 bg-yellow-100 rounded-md border border-yellow-200">
+                                <p class="font-bold text-center">⚠️ PENTING!</p>
+                                <p class="text-center">Setelah melakukan pembayaran, <strong>WAJIB</strong> tekan tombol <strong>"Bayar Sekarang"</strong> di bawah untuk menyelesaikan pesanan dan menyimpannya ke sistem.</p>
+                            </div>
                         </div>
                         <div id="qris-error" class="hidden text-center text-red-600">
                             <p class="mb-2">Gagal generate QRIS</p>
@@ -280,6 +285,11 @@
                                         Buka GoPay App
                                     </a>
                                 </div>
+
+                                <div class="p-3 mt-4 text-sm text-yellow-800 bg-yellow-100 rounded-md border border-yellow-200">
+                                    <p class="font-bold text-center">⚠️ PENTING!</p>
+                                    <p class="text-center">Setelah melakukan pembayaran, <strong>WAJIB</strong> tekan tombol <strong>"Bayar Sekarang"</strong> di bawah untuk menyelesaikan pesanan dan menyimpannya ke sistem.</p>
+                                </div>
                             </div>
                             
                             <div id="gopay-qr-error" class="hidden text-center text-red-600">
@@ -291,6 +301,7 @@
                         </div>
                         
                         <input type="hidden" name="gopay_transaction_id" id="gopay_transaction_id">
+                        <input type="hidden" name="gopay_order_id" id="gopay_order_id">
                     </div>
                 </div>
 
@@ -736,6 +747,10 @@
         // Get total amount from page
         const totalAmount = {{ $total }};
 
+        // Generate Order ID
+        const orderId = 'ORDER-' + Date.now();
+        document.getElementById('gopay_order_id').value = orderId;
+
         // Send request to generate GoPay QR
         fetch('/checkout/generate-gopay-qr', {
             method: 'POST',
@@ -745,7 +760,7 @@
             },
             body: JSON.stringify({
                 amount: totalAmount,
-                order_id: 'ORDER-' + Date.now()
+                order_id: orderId
             })
         })
         .then(response => response.json())

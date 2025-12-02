@@ -592,38 +592,55 @@ class CheckoutController extends Controller
 
                 // Logika spesifik per gateway untuk payment type, bisa di-refactor lebih lanjut
                 $paymentType = $request->input('payment_type', 'bank_transfer');
-                switch ($paymentMethod->gateway) {
-                    case 'midtrans':
-                        switch ($paymentType) {
-                            case 'credit_card':
-                                $cardToken = $this->getCardToken($request);
-                                if (!$cardToken) {
-                                    return redirect()->back()->with('error', 'Gagal mendapatkan token kartu kredit');
-                                }
-                                $transactionParams['payment_type'] = 'credit_card';
-                                $transactionParams['credit_card'] = [
-                                    'token_id' => $cardToken,
-                                    'authentication' => true,
-                                ];
-                                break;
-                            case 'bank_transfer':
-                                $transactionParams['payment_type'] = 'bank_transfer';
-                                $transactionParams['bank_transfer'] = ['bank' => $request->bank ?? 'bca'];
-                                break;
-                            case 'gopay':
-                                $transactionParams['payment_type'] = 'gopay';
-                                break;
-                            default:
-                                Log::warning('Unrecognized payment type for Midtrans: ' . $paymentType . ', defaulting to bank_transfer BCA');
-                                $transactionParams['payment_type'] = 'bank_transfer';
-                                $transactionParams['bank_transfer'] = ['bank' => 'bca'];
-                                break;
-                        }
-                        break;
-                    // Tambahkan case untuk gateway lain jika ada logika payment_type yang berbeda
+                
+                // Cek jika ini adalah pembayaran GoPay yang sudah digenerate di frontend
+                if ($paymentType === 'gopay' && $request->input('gopay_transaction_id') && $request->input('gopay_order_id')) {
+                    // Gunakan Order ID yang sudah digenerate sebelumnya
+                    $order->update(['no_order' => $request->input('gopay_order_id')]);
+                    
+                    // Ambil status transaksi dari Midtrans untuk mendapatkan detail pembayaran (QR Code dll)
+                    $status = $gateway->getTransactionStatus($request->input('gopay_transaction_id'));
+                    $chargeResponse = $status; // Gunakan status sebagai response
+                    
+                    Log::info('Using existing GoPay transaction', [
+                        'transaction_id' => $request->input('gopay_transaction_id'),
+                        'order_id' => $request->input('gopay_order_id')
+                    ]);
+                } else {
+                    // Buat transaksi baru jika belum ada
+                    switch ($paymentMethod->gateway) {
+                        case 'midtrans':
+                            switch ($paymentType) {
+                                case 'credit_card':
+                                    $cardToken = $this->getCardToken($request);
+                                    if (!$cardToken) {
+                                        return redirect()->back()->with('error', 'Gagal mendapatkan token kartu kredit');
+                                    }
+                                    $transactionParams['payment_type'] = 'credit_card';
+                                    $transactionParams['credit_card'] = [
+                                        'token_id' => $cardToken,
+                                        'authentication' => true,
+                                    ];
+                                    break;
+                                case 'bank_transfer':
+                                    $transactionParams['payment_type'] = 'bank_transfer';
+                                    $transactionParams['bank_transfer'] = ['bank' => $request->bank ?? 'bca'];
+                                    break;
+                                case 'gopay':
+                                    $transactionParams['payment_type'] = 'gopay';
+                                    break;
+                                default:
+                                    Log::warning('Unrecognized payment type for Midtrans: ' . $paymentType . ', defaulting to bank_transfer BCA');
+                                    $transactionParams['payment_type'] = 'bank_transfer';
+                                    $transactionParams['bank_transfer'] = ['bank' => 'bca'];
+                                    break;
+                            }
+                            break;
+                        // Tambahkan case untuk gateway lain jika ada logika payment_type yang berbeda
+                    }
+                    
+                    $chargeResponse = $gateway->createTransaction($transactionParams);
                 }
-
-                $chargeResponse = $gateway->createTransaction($transactionParams);
 
                 $paymentUrl = null;
                 if (!empty($chargeResponse->redirect_url)) { // Untuk 3DS atau halaman pembayaran
