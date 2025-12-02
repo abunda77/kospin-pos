@@ -26,23 +26,19 @@ class Order extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
 
-            // Generate sequential no_order
+            // Generate unique no_order using timestamp to avoid race conditions
             if (empty($model->no_order)) {
-                // Get the last order that has a numeric no_order
-                $lastOrder = static::whereRaw('no_order REGEXP "^[0-9]+$"')
-                    ->orderByRaw('CAST(no_order AS UNSIGNED) DESC')
-                    ->first();
+                $prefix = 'ORD-';
+                // Format: ORD-YYMMDDHHMMSS-RRR (e.g., ORD-251202193000-123)
+                // This ensures chronological sorting and uniqueness
+                $timestamp = now()->format('ymdHis');
                 
-                $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
-                
-                // Ensure uniqueness loop
                 do {
-                    $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
-                    $exists = static::where('no_order', $model->no_order)->exists();
-                    if ($exists) {
-                        $nextNumber++;
-                    }
-                } while ($exists);
+                    $random = str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
+                    $candidate = $prefix . $timestamp . $random;
+                } while (static::where('no_order', $candidate)->exists());
+                
+                $model->no_order = $candidate;
             }
 
             // Set current user as cashier if not set
