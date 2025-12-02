@@ -29,11 +29,19 @@ class WebhookController extends Controller
         }
 
         // 4. Find the order by order_id
-        // Ekstrak ID order dari format '{no_order}-{timestamp}'
-        $orderIdParts = explode('-', $payload['order_id']);
-        $noOrder = $orderIdParts[0];
+        // 4. Find the order by order_id
+        // Coba cari dengan exact match terlebih dahulu (untuk format 'ORDER-123...')
+        $order = Order::where('no_order', $payload['order_id'])->first();
 
-        $order = Order::where('no_order', $noOrder)->first();
+        // Jika tidak ketemu, coba logic lama (split by hyphen) untuk backward compatibility
+        // atau jika formatnya adalah '{no_order}-{timestamp}'
+        if (!$order) {
+            $orderIdParts = explode('-', $payload['order_id']);
+            if (count($orderIdParts) > 1) {
+                $noOrder = $orderIdParts[0];
+                $order = Order::where('no_order', $noOrder)->first();
+            }
+        }
 
         if (!$order) {
             return response()->json([
