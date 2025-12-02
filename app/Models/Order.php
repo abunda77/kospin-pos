@@ -28,9 +28,21 @@ class Order extends Model
 
             // Generate sequential no_order
             if (empty($model->no_order)) {
-                $lastOrder = static::orderBy('no_order', 'desc')->first();
+                // Get the last order that has a numeric no_order
+                $lastOrder = static::whereRaw('no_order REGEXP "^[0-9]+$"')
+                    ->orderByRaw('CAST(no_order AS UNSIGNED) DESC')
+                    ->first();
+                
                 $nextNumber = $lastOrder ? intval($lastOrder->no_order) + 1 : 1;
-                $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+                
+                // Ensure uniqueness loop
+                do {
+                    $model->no_order = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+                    $exists = static::where('no_order', $model->no_order)->exists();
+                    if ($exists) {
+                        $nextNumber++;
+                    }
+                } while ($exists);
             }
 
             // Set current user as cashier if not set
