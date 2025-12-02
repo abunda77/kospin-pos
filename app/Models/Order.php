@@ -71,9 +71,9 @@ class Order extends Model
     {
         // Use raw query to get max order number with locking to prevent race conditions
         // This bypasses any model caching that might occur in FrankenPHP workers
-        $result = \DB::select('SELECT MAX(CAST(no_order AS UNSIGNED)) as max_order FROM orders FOR UPDATE');
+        $result = \DB::select('SELECT COALESCE(MAX(CAST(no_order AS UNSIGNED)), 0) as max_order FROM orders FOR UPDATE');
 
-        $maxOrder = $result[0]->max_order ?? 0;
+        $maxOrder = (int) $result[0]->max_order;
         $nextNumber = $maxOrder + 1;
 
         return str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
