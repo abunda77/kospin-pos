@@ -594,7 +594,10 @@ class CheckoutController extends Controller
                 $paymentType = $request->input('payment_type', 'bank_transfer');
                 
                 // Cek jika ini adalah pembayaran GoPay yang sudah digenerate di frontend
-                if ($paymentType === 'gopay' && $request->input('gopay_transaction_id') && $request->input('gopay_order_id')) {
+                // Kita prioritaskan pengecekan ID transaksi/order dari hidden input
+                if ($request->input('gopay_transaction_id') && $request->input('gopay_order_id')) {
+                    $paymentType = 'gopay'; // Force payment type ke gopay jika ID ditemukan
+                    
                     // Gunakan Order ID yang sudah digenerate sebelumnya
                     $order->update(['no_order' => $request->input('gopay_order_id')]);
                     
