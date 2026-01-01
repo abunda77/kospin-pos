@@ -110,7 +110,7 @@
         <div class="mb-6">
             <h2 class="mb-3 text-lg font-semibold">Status Pembayaran</h2>
 
-            <div class="flex items-center mb-4">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
                 @php
                     $statusColor = [
                         'pending' => 'bg-yellow-100 text-yellow-800',
@@ -134,6 +134,14 @@
                 <span id="order-status-badge" class="px-3 py-1 rounded-full text-sm font-medium {{ $statusColor }}">
                     {{ $statusText }}
                 </span>
+
+                @if($order->status === 'pending')
+                    <button onclick="checkPaymentStatus()" 
+                            id="check-status-btn"
+                            class="px-4 py-1.5 text-sm font-medium text-red-600 bg-white border-2 border-red-600 rounded-md hover:bg-red-50 transition-colors">
+                        Cek Status Pembayaran
+                    </button>
+                @endif
             </div>
 
             <div>
@@ -322,14 +330,21 @@
             const countdownInterval = setInterval(updateCountdown, 1000);
         }
 
-        // Real-time Status Check
+        // Real-time Status Check - Continue until payment is completed/failed
         const orderStatus = '{{ $order->status }}';
         const orderId = '{{ $order->id }}';
         const checkStatusUrl = '{{ route("checkout.check-status", ":id") }}'.replace(':id', orderId);
         const statusBadge = document.getElementById('order-status-badge');
 
-        if (orderStatus === 'pending') {
+        // Auto-check untuk status yang belum final
+        const nonFinalStatuses = ['pending', 'processing'];
+        
+        if (nonFinalStatuses.includes(orderStatus)) {
+            console.log('Starting auto-check for order:', orderId, 'Current status:', orderStatus);
+            
             const checkStatusInterval = setInterval(function() {
+                console.log('Auto-checking status...');
+                
                 fetch(checkStatusUrl, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
@@ -338,28 +353,126 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Auto-check response:', data);
+                    
                     if (data.success) {
-                        if (data.status !== 'pending') {
-                            // Update badge
+                        // Update badge jika status berubah
+                        const currentBadgeText = statusBadge.textContent.trim();
+                        if (currentBadgeText !== data.status_text) {
+                            console.log('Status changed from', currentBadgeText, 'to', data.status_text);
+                            
                             statusBadge.className = `px-3 py-1 rounded-full text-sm font-medium ${data.status_color}`;
                             statusBadge.textContent = data.status_text;
-                            
-                            // Stop polling
+                        }
+                        
+                        // Stop polling jika status sudah final
+                        const finalStatuses = ['completed', 'failed', 'cancelled', 'expired'];
+                        if (finalStatuses.includes(data.status)) {
+                            console.log('Final status reached:', data.status, '- stopping auto-check');
                             clearInterval(checkStatusInterval);
-
-                            // Optional: Reload page to update other elements (like removing payment buttons)
-                            if (data.status === 'processing' || data.status === 'completed') {
+                            
+                            // Reload page untuk update UI (hide payment buttons, etc.)
+                            if (data.status === 'completed') {
+                                console.log('Payment completed! Reloading page in 2 seconds...');
                                 setTimeout(() => {
                                     window.location.reload();
-                                }, 1000);
+                                }, 2000);
                             }
                         }
                     }
                 })
-                .catch(error => console.error('Error checking status:', error));
+                .catch(error => console.error('Auto-check error:', error));
             }, 5000); // Check every 5 seconds
+        } else {
+            console.log('Order status is final:', orderStatus, '- auto-check not started');
         }
     });
+
+    // Manual check payment status function
+    function checkPaymentStatus() {
+        const orderId = '{{ $order->id }}';
+        const checkStatusUrl = '{{ route("checkout.check-status", ":id") }}'.replace(':id', orderId);
+        const statusBadge = document.getElementById('order-status-badge');
+        const checkButton = document.getElementById('check-status-btn');
+        
+        console.log('Checking payment status for order:', orderId);
+        console.log('Check status URL:', checkStatusUrl);
+        
+        // Show loading state
+        const originalText = checkButton.textContent;
+        checkButton.disabled = true;
+        checkButton.innerHTML = '<svg class="inline w-4 h-4 mr-2 animate-spin" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Memeriksa...';
+        
+        fetch(checkStatusUrl, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                // Update badge with new status
+                console.log('Updating status badge to:', data.status);
+                console.log('Status color:', data.status_color);
+                console.log('Status text:', data.status_text);
+                
+                statusBadge.className = `px-3 py-1 rounded-full text-sm font-medium ${data.status_color}`;
+                statusBadge.textContent = data.status_text;
+                
+                // Show success feedback
+                checkButton.className = 'px-4 py-1.5 text-sm font-medium text-green-600 bg-green-50 border-2 border-green-600 rounded-md';
+                checkButton.innerHTML = '✓ Status Diperbarui';
+                
+                // Reload if payment successful
+                if (data.status === 'processing' || data.status === 'completed') {
+                    console.log('Payment successful, reloading page...');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    console.log('Status still:', data.status);
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        checkButton.disabled = false;
+                        checkButton.className = 'px-4 py-1.5 text-sm font-medium text-red-600 bg-white border-2 border-red-600 rounded-md hover:bg-red-50 transition-colors';
+                        checkButton.textContent = originalText;
+                    }, 3000);
+                }
+            } else {
+                console.error('API returned success: false', data.message);
+                // Show error
+                checkButton.className = 'px-4 py-1.5 text-sm font-medium text-red-600 bg-red-50 border-2 border-red-600 rounded-md';
+                checkButton.textContent = data.message || 'Gagal memeriksa';
+                
+                setTimeout(() => {
+                    checkButton.disabled = false;
+                    checkButton.className = 'px-4 py-1.5 text-sm font-medium text-red-600 bg-white border-2 border-red-600 rounded-md hover:bg-red-50 transition-colors';
+                    checkButton.textContent = originalText;
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking status:', error);
+            checkButton.className = 'px-4 py-1.5 text-sm font-medium text-red-600 bg-red-50 border-2 border-red-600 rounded-md';
+            checkButton.textContent = 'Gagal memeriksa';
+            
+            setTimeout(() => {
+                checkButton.disabled = false;
+                checkButton.className = 'px-4 py-1.5 text-sm font-medium text-red-600 bg-white border-2 border-red-600 rounded-md hover:bg-red-50 transition-colors';
+                checkButton.textContent = originalText;
+            }, 3000);
+        });
+    }
+
 </script>
 @endpush
 

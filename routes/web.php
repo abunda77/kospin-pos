@@ -60,14 +60,20 @@ Route::delete('/cart/remove/{product}', [CartController::class, 'remove'])
 // Checkout routes
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/process-payment', [CheckoutController::class, 'processPayment'])->name('checkout.process-payment');
-Route::post('/checkout/generate-qris', [CheckoutController::class, 'generateQris'])->name('checkout.generate-qris');
-Route::post('/checkout/generate-gopay-qr', [CheckoutController::class, 'generateGopayQr'])->name('checkout.generate-gopay-qr');
+Route::post('/checkout/generate-qris', [CheckoutController::class, 'generateQris'])
+    ->middleware('throttle:5,1')
+    ->name('checkout.generate-qris');
+Route::post('/checkout/generate-gopay-qr', [CheckoutController::class, 'generateGopayQr'])
+    ->middleware('throttle:5,1')
+    ->name('checkout.generate-gopay-qr');
 Route::get('/thank-you/{order}', [CheckoutController::class, 'thankYou'])->name('thank-you');
 // Route::get('/generate-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('checkout.generate-pdf');
 Route::get('/generate-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('order.pdf');
 Route::get('/check-status/{orderId}', [CheckoutController::class, 'checkTransactionStatus'])->name('checkout.check-status');
 Route::delete('/cart/{product}', [CartController::class, 'delete'])->name('cart.delete');
-Route::get('/check-member/{nik}', [CheckoutController::class, 'checkMember'])->name('checkout.check-member');
+Route::get('/check-member/{nik}', [CheckoutController::class, 'checkMember'])
+    ->middleware('throttle:10,1')
+    ->name('checkout.check-member');
 Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
 // Route::get('/order-pdf/{order}', [CheckoutController::class, 'generatePdf'])->name('order.pdf');
 

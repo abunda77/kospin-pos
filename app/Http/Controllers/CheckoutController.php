@@ -57,11 +57,48 @@ class CheckoutController extends Controller
 
     public function checkMember($nik)
     {
-        $member = Anggota::where('nik', $nik)->first();
+        // Sanitize input
+        $nik = preg_replace('/[^0-9]/', '', $nik);
+        
+        // Validate NIK format
+        if (strlen($nik) < 10 || strlen($nik) > 16) {
+            return response()->json([
+                'exists' => false,
+                'message' => 'Format NIK/No.WA tidak valid'
+            ], 400);
+        }
+
+        // Log suspicious activity
+        if (strlen($nik) < 10) {
+            Log::warning('Suspicious member check attempt', [
+                'nik' => $nik,
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ]);
+        }
+
+        // Find member - only return necessary fields
+        $member = Anggota::where('nik', $nik)
+            ->orWhere('no_hp', $nik)
+            ->select(['id', 'nik', 'nama_lengkap', 'no_hp', 'alamat'])
+            ->first();
+
+        if ($member) {
+            return response()->json([
+                'exists' => true,
+                'member' => [
+                    'id' => $member->id,
+                    'nik' => $member->nik,
+                    'nama_lengkap' => htmlspecialchars($member->nama_lengkap, ENT_QUOTES, 'UTF-8'),
+                    'no_hp' => $member->no_hp,
+                    'alamat' => htmlspecialchars($member->alamat, ENT_QUOTES, 'UTF-8'),
+                ]
+            ]);
+        }
 
         return response()->json([
-            'exists' => !is_null($member),
-            'member' => $member
+            'exists' => false,
+            'message' => 'Anggota tidak ditemukan'
         ]);
     }
 
@@ -461,32 +498,10 @@ class CheckoutController extends Controller
         }, 'Invoice-' . str_pad($order->id, 5, '0', STR_PAD_LEFT) . '.pdf');
     }
 
-    public function processPayment(Request $request)
+    public function processPayment(\App\Http\Requests\CheckoutRequest $request)
     {
-        $isMember = $request->input('is_member') === '1';
-
-        $baseRules = [
-            'payment_method_id' => 'required|exists:payment_methods,id',
-            'is_member' => 'required|in:0,1',
-        ];
-
-        if ($isMember) {
-            $memberRules = [
-                'member_id' => 'required|exists:anggotas,id',
-                'whatsapp' => 'required|string|max:20',
-                'address' => 'required|string',
-            ];
-            $rules = array_merge($baseRules, $memberRules);
-        } else {
-            $nonMemberRules = [
-            'name' => 'required|string|max:255',
-            'whatsapp' => 'required|string|max:20',
-            'address' => 'required|string',
-            ];
-            $rules = array_merge($baseRules, $nonMemberRules);
-        }
-
-        $request->validate($rules);
+        // Validation and sanitization already handled by CheckoutRequest
+        $isMember = $request->input('is_member') == 1;
 
         // Log untuk debugging
         Log::info('Payment request received', [
@@ -893,55 +908,103 @@ class CheckoutController extends Controller
         try {
             $order = Order::findOrFail($orderId);
 
-            if (!$order->transaction_id || !$order->paymentMethod || !$order->paymentMethod->gateway) {
-                if (request()->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => 'ID Transaksi atau Gateway Pembayaran tidak ditemukan.']);
+            // Define status mappings
+            $statusColor = [
+                'pending' => 'bg-yellow-100 text-yellow-800',
+                'processing' => 'bg-blue-100 text-blue-800',
+                'completed' => 'bg-green-100 text-green-800',
+                'failed' => 'bg-red-100 text-red-800',
+                'cancelled' => 'bg-gray-100 text-gray-800',
+                'expired' => 'bg-red-100 text-red-800',
+            ][$order->status] ?? 'bg-gray-100 text-gray-800';
+
+            $statusText = [
+                'pending' => 'Menunggu Pembayaran',
+                'processing' => 'Sedang Diproses',
+                'completed' => 'Pembayaran Berhasil',
+                'failed' => 'Pembayaran Gagal',
+                'cancelled' => 'Dibatalkan',
+                'expired' => 'Waktu Pembayaran Habis',
+            ][$order->status] ?? ucfirst($order->status);
+
+            // If payment method has gateway and transaction_id, check with gateway
+            if ($order->transaction_id && $order->paymentMethod && $order->paymentMethod->gateway) {
+                try {
+                    $gateway = $this->paymentGatewayFactory->make($order->paymentMethod->gateway);
+                    $status = $gateway->getTransactionStatus($order->transaction_id);
+
+                    // Update order status
+                    $order->payment_details = json_encode($status);
+                    $oldStatus = $order->status;
+                    $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'pending');
+                    $order->save();
+
+                    // Update status color and text if changed
+                    if ($oldStatus !== $order->status) {
+                        $statusColor = [
+                            'pending' => 'bg-yellow-100 text-yellow-800',
+                            'processing' => 'bg-blue-100 text-blue-800',
+                            'completed' => 'bg-green-100 text-green-800',
+                            'failed' => 'bg-red-100 text-red-800',
+                            'cancelled' => 'bg-gray-100 text-gray-800',
+                            'expired' => 'bg-red-100 text-red-800',
+                        ][$order->status] ?? 'bg-gray-100 text-gray-800';
+
+                        $statusText = [
+                            'pending' => 'Menunggu Pembayaran',
+                            'processing' => 'Sedang Diproses',
+                            'completed' => 'Pembayaran Berhasil',
+                            'failed' => 'Pembayaran Gagal',
+                            'cancelled' => 'Dibatalkan',
+                            'expired' => 'Waktu Pembayaran Habis',
+                        ][$order->status] ?? ucfirst($order->status);
+                    }
+
+                    Log::info('Transaction status checked', [
+                        'order_id' => $orderId,
+                        'old_status' => $oldStatus,
+                        'new_status' => $order->status
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('Gateway status check failed, returning current status', [
+                        'order_id' => $orderId,
+                        'error' => $e->getMessage()
+                    ]);
                 }
-                return redirect()->back()->with('error', 'ID Transaksi atau Gateway Pembayaran tidak ditemukan.');
+            } else {
+                // For non-gateway payments (QRIS manual, Cash, etc.), just return current status
+                Log::info('Non-gateway payment status check', [
+                    'order_id' => $orderId,
+                    'payment_method' => $order->paymentMethod->name ?? 'Unknown',
+                    'current_status' => $order->status
+                ]);
             }
 
-            $gateway = $this->paymentGatewayFactory->make($order->paymentMethod->gateway);
-            $status = $gateway->getTransactionStatus($order->transaction_id);
-
-            // Update order status
-            $order->payment_details = json_encode($status);
-            $order->status = $this->mapMidtransStatus($status->transaction_status ?? 'pending');
-            $order->save();
-
             if (request()->wantsJson()) {
-                $statusColor = [
-                    'pending' => 'bg-yellow-100 text-yellow-800',
-                    'processing' => 'bg-blue-100 text-blue-800',
-                    'completed' => 'bg-green-100 text-green-800',
-                    'failed' => 'bg-red-100 text-red-800',
-                    'cancelled' => 'bg-gray-100 text-gray-800',
-                    'expired' => 'bg-red-100 text-red-800',
-                ][$order->status] ?? 'bg-gray-100 text-gray-800';
-
-                $statusText = [
-                    'pending' => 'Menunggu Pembayaran',
-                    'processing' => 'Sedang Diproses',
-                    'completed' => 'Pembayaran Berhasil',
-                    'failed' => 'Pembayaran Gagal',
-                    'cancelled' => 'Dibatalkan',
-                    'expired' => 'Waktu Pembayaran Habis',
-                ][$order->status] ?? ucfirst($order->status);
-
                 return response()->json([
                     'success' => true,
                     'status' => $order->status,
                     'status_text' => $statusText,
                     'status_color' => $statusColor,
-                    'message' => 'Status pembayaran berhasil diperbarui'
+                    'message' => 'Status pembayaran: ' . $statusText,
+                    'payment_method' => $order->paymentMethod->name ?? 'Unknown'
                 ]);
             }
 
             return redirect()->route('thank-you', $order->id)->with('status', 'Status pembayaran berhasil diperbarui');
         } catch (\Exception $e) {
-            Log::error('Check Transaction Status Error: ' . $e->getMessage());
+            Log::error('Check Transaction Status Error: ' . $e->getMessage(), [
+                'order_id' => $orderId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             if (request()->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Gagal memeriksa status transaksi: ' . $e->getMessage()]);
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Gagal memeriksa status transaksi: ' . $e->getMessage()
+                ], 500);
             }
+            
             return redirect()->back()->with('error', 'Gagal memeriksa status transaksi: ' . $e->getMessage());
         }
     }

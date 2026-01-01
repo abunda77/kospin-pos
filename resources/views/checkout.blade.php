@@ -49,7 +49,11 @@
                         <input type="text"
                                id="check-nik"
                                class="flex-1 px-3 py-2 text-sm rounded border md:text-base"
-                               placeholder="Masukkan NIK/No.WA">
+                               placeholder="Masukkan NIK/No.WA"
+                               pattern="[0-9]{10,16}"
+                               maxlength="16"
+                               title="NIK/No.WA harus berupa 10-16 digit angka"
+                               autocomplete="off">
                         <button type="button"
                                 onclick="checkMember()"
                                 class="px-3 py-2 text-sm text-white bg-blue-500 rounded md:px-4 md:text-base">
@@ -66,15 +70,31 @@
                     <div id="non-member-form">
                         <div class="mb-4">
                             <label for="name" class="block mb-1 text-sm font-medium text-gray-700">Nama Lengkap</label>
-                            <input type="text" name="name" id="name" class="px-3 py-2 w-full rounded-md border border-gray-300" required>
+                            <input type="text" name="name" id="name" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                   required 
+                                   pattern="[a-zA-Z\s]{3,255}" 
+                                   maxlength="255"
+                                   title="Nama hanya boleh berisi huruf dan spasi (3-255 karakter)"
+                                   autocomplete="name">
                         </div>
                         <div class="mb-4">
                             <label for="whatsapp" class="block mb-1 text-sm font-medium text-gray-700">Nomor WhatsApp</label>
-                            <input type="text" name="whatsapp" id="whatsapp" class="px-3 py-2 w-full rounded-md border border-gray-300" required>
+                            <input type="tel" name="whatsapp" id="whatsapp" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                   required 
+                                   pattern="[0-9]{10,15}" 
+                                   maxlength="15"
+                                   title="Nomor WhatsApp harus berupa 10-15 digit angka"
+                                   placeholder="08123456789"
+                                   autocomplete="tel">
                         </div>
                         <div class="mb-4">
                             <label for="address" class="block mb-1 text-sm font-medium text-gray-700">Alamat Lengkap</label>
-                            <textarea name="address" id="address" rows="3" class="px-3 py-2 w-full rounded-md border border-gray-300" required></textarea>
+                            <textarea name="address" id="address" rows="3" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                      required 
+                                      minlength="10" 
+                                      maxlength="500"
+                                      title="Alamat minimal 10 karakter, maksimal 500 karakter"
+                                      autocomplete="street-address"></textarea>
                         </div>
                     </div>
 
@@ -92,11 +112,22 @@
                         </div>
                         <div class="mb-4">
                             <label for="whatsapp" class="block mb-1 text-sm font-medium text-gray-700">Nomor WhatsApp</label>
-                            <input type="text" name="whatsapp" id="member-whatsapp" class="px-3 py-2 w-full rounded-md border border-gray-300" required>
+                            <input type="tel" name="whatsapp" id="member-whatsapp" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                   required 
+                                   pattern="[0-9]{10,15}" 
+                                   maxlength="15"
+                                   title="Nomor WhatsApp harus berupa 10-15 digit angka"
+                                   placeholder="08123456789"
+                                   autocomplete="tel">
                         </div>
                         <div class="mb-4">
                             <label for="address" class="block mb-1 text-sm font-medium text-gray-700">Alamat Lengkap</label>
-                            <textarea name="address" id="member-address" rows="3" class="px-3 py-2 w-full rounded-md border border-gray-300" required></textarea>
+                            <textarea name="address" id="member-address" rows="3" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                      required 
+                                      minlength="10" 
+                                      maxlength="500"
+                                      title="Alamat minimal 10 karakter, maksimal 500 karakter"
+                                      autocomplete="street-address"></textarea>
                         </div>
                     </div>
             </div>
@@ -211,7 +242,12 @@
                         <h3 class="mb-3 font-medium">Detail Kartu Kredit</h3>
                         <div class="mb-3">
                             <label for="card_number" class="block mb-1 text-sm font-medium text-gray-700">Nomor Kartu</label>
-                            <input type="text" name="card_number" id="card_number" class="px-3 py-2 w-full rounded-md border border-gray-300" placeholder="4111 1111 1111 1111">
+                            <input type="text" name="card_number" id="card_number" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                   placeholder="4111 1111 1111 1111"
+                                   pattern="[0-9\s]{13,19}"
+                                   maxlength="19"
+                                   autocomplete="cc-number"
+                                   inputmode="numeric">
                         </div>
 
                         <div class="grid grid-cols-3 gap-3 mb-3">
@@ -235,7 +271,12 @@
 
                             <div>
                                 <label for="card_cvv" class="block mb-1 text-sm font-medium text-gray-700">CVV</label>
-                                <input type="text" name="card_cvv" id="card_cvv" class="px-3 py-2 w-full rounded-md border border-gray-300" placeholder="123">
+                                <input type="text" name="card_cvv" id="card_cvv" class="px-3 py-2 w-full rounded-md border border-gray-300" 
+                                       placeholder="123"
+                                       pattern="[0-9]{3,4}"
+                                       maxlength="4"
+                                       autocomplete="cc-csc"
+                                       inputmode="numeric">
                             </div>
                         </div>
                     </div>
