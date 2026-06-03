@@ -9,10 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('whatsapp')->nullable();
-            $table->text('address')->nullable();
-            $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])
-                  ->default('pending');
+            if (!Schema::hasColumn('orders', 'whatsapp')) {
+                $table->string('whatsapp')->nullable();
+            }
+
+            if (!Schema::hasColumn('orders', 'address')) {
+                $table->text('address')->nullable();
+            }
+
+            if (!Schema::hasColumn('orders', 'status')) {
+                $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])
+                    ->default('pending');
+            }
         });
     }
 
