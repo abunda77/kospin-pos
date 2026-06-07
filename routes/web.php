@@ -8,6 +8,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\InfoController;
 
 
 
@@ -40,6 +41,7 @@ Route::get('/m/catalog/{categorySlug}', [CatalogController::class, 'showMobile']
 // Static pages
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::get('/info', [InfoController::class, 'index'])->name('info');
 
 // Preference setting route
 Route::get('/set-view-preference/{preference}', function ($preference) {
