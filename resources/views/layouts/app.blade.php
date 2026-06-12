@@ -90,24 +90,24 @@
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Tentang Kami</h3>
                     <p class="text-gray-300">
-                        Sinara Artha adalah Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2021.
+                        Sinara Artha Naya adalah Koperasi Serba Usaha yang terpercaya melayani kebutuhan anggota sejak tahun 2021.
                     </p>
                 </div>
 
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Alamat Kantor</h3>
                     <p class="text-gray-300">
-                        Eastern Park Residence Blok B No. 7,<br>
-                        Sukolilo, Surabaya 60111
+                        Jl. Komplek ruko Sesetan Agung No.16 S, Sesetan, Denpasar Selatan<br>
+                        , Kota Denpasar, Bali 80223
                     </p>
                 </div>
 
                 <div class="text-center md:text-left">
                     <h3 class="mb-4 text-lg font-semibold text-green-400">Hubungi Kami</h3>
                     <p class="text-gray-300">
-                        Email: <a href="mailto:cs@kospinsinaraartha.co.id" class="text-green-400 hover:text-green-300">cs@kospinsinaraartha.co.id</a><br>
-                        Telepon: (+62) 87778715788<br>
-                        WhatsApp: +62 87778715788
+                        Email: <a href="mailto:cs@sinaraarthanaya.com" class="text-green-400 hover:text-green-300">cs@kospinsinaraartha.co.id</a><br>
+                        Telepon: (+62) 813-3308-688<br>
+                        WhatsApp: +62 813-3308-688
                     </p>
                 </div>
 
@@ -122,7 +122,7 @@
             </div>
 
             <div class="pt-6 mt-6 text-center border-t border-gray-700">
-                <p class="text-gray-400">&copy; {{ date('Y') }} Sinara Artha. All rights reserved.</p>
+                <p class="text-gray-400">&copy; {{ date('Y') }} Sinara Artha Naya. All rights reserved.</p>
             </div>
         </div>
     </footer>

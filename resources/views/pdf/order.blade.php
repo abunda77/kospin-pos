@@ -172,7 +172,7 @@
                     <strong>Nomor Rekening:</strong> 0889333288
                 </div>
                 <div class="info-item">
-                    <strong>Atas Nama:</strong> KOPERASI SINARA ARTHA
+                    <strong>Atas Nama:</strong> KOPERASI SINARA ARTHA NAYA
                 </div>
             </div>
             @endif
@@ -221,7 +221,7 @@
         </div>
 
         <div class="footer">
-            <p>Terima kasih telah berbelanja di Koperasi Sinara Artha</p>
+            <p>Terima kasih telah berbelanja di Koperasi Sinara Artha Naya</p>
             <p>Jika ada pertanyaan, silakan hubungi kami di nomor yang tertera</p>
             <p>Setelah melakukan pembayaran, mohon konfirmasi melalui WhatsApp kami di:</p>
             <p>+62 877-7871-5788</p>
