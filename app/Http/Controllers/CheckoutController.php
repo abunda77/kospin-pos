@@ -647,8 +647,8 @@ class CheckoutController extends Controller
                     // Gunakan Order ID yang sudah digenerate sebelumnya
                     $order->update(['no_order' => $request->input('gopay_order_id')]);
                     
-                    // Ambil status transaksi dari Midtrans untuk mendapatkan detail pembayaran (QR Code dll)
-                    $status = $gateway->getTransactionStatus($request->input('gopay_transaction_id'));
+                    // Ambil status transaksi dari Midtrans menggunakan order_id (bukan transaction_id UUID)
+                    $status = $gateway->getTransactionStatus($request->input('gopay_order_id'));
                     $chargeResponse = $status; // Gunakan status sebagai response
                     
                     Log::info('Using existing GoPay transaction', [
