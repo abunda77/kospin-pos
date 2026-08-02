@@ -477,7 +477,7 @@ class CheckoutController extends Controller
         switch ($transactionStatus) {
             case 'capture':
             case 'settlement':
-                return 'processing';
+                return 'completed'; // settlement/capture = dana sudah masuk merchant, transaksi final
             case 'pending':
                 return 'pending';
             case 'deny':
@@ -644,8 +644,11 @@ class CheckoutController extends Controller
                 if ($request->input('gopay_transaction_id') && $request->input('gopay_order_id')) {
                     $paymentType = 'gopay'; // Force payment type ke gopay jika ID ditemukan
                     
-                    // Gunakan Order ID yang sudah digenerate sebelumnya
-                    $order->update(['no_order' => $request->input('gopay_order_id')]);
+                    // Gunakan Order ID yang sudah digenerate sebelumnya, update no_order dan transaction_id
+                    $order->update([
+                        'no_order' => $request->input('gopay_order_id'),
+                        'transaction_id' => $request->input('gopay_order_id'),
+                    ]);
                     
                     // Ambil status transaksi dari Midtrans menggunakan order_id (bukan transaction_id UUID)
                     $status = $gateway->getTransactionStatus($request->input('gopay_order_id'));
