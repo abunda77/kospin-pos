@@ -54,7 +54,7 @@ class WebhookController extends Controller
         $transactionStatus = $payload['transaction_status'];
 
         if ($transactionStatus === 'settlement' && $order->status !== 'completed') {
-            $order->status = 'processing'; // or 'paid' or 'completed', depending on your flow
+            $order->status = 'completed'; // settlement = dana sudah masuk ke merchant, transaksi final
             $order->save();
         } else if ($transactionStatus === 'capture' && $payload['fraud_status'] === 'accept') {
             $order->status = 'processing';
