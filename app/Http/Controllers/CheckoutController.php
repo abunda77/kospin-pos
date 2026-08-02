@@ -794,7 +794,7 @@ class CheckoutController extends Controller
                     $order->status = 'challenge';
                 }
             } else if ($transactionStatus == 'settlement') {
-                $order->status = 'processing';
+                $order->status = 'completed';
             } else if (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
                 $order->status = 'failed';
             } else if ($transactionStatus == 'pending') {
