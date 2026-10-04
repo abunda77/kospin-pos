@@ -71,9 +71,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Mengatur akses ke dokumentasi API
         Gate::define('viewApiDocs', function (?User $user = null) {
-            // Selalu minta password dari env
-            return request()->hasHeader('PHP_AUTH_PW') &&
-                   request()->header('PHP_AUTH_PW') === env('SCRAMBLE_DOCS_PASSWORD');
+            // Selalu minta password dari config (tahan config:cache)
+            $password = (string) config('scramble.docs_password');
+
+            return $password !== '' &&
+                   request()->hasHeader('PHP_AUTH_PW') &&
+                   hash_equals($password, (string) request()->header('PHP_AUTH_PW'));
         });
     }
 }

@@ -25,7 +25,7 @@ class DocsApiAccessTest extends TestCase
 
     public function test_docs_api_menolak_password_salah(): void
     {
-        config()->set('scramble_docs_password', 'rahasia');
+        config()->set('scramble.docs_password', 'rahasia');
 
         $this->withHeaders([
             'PHP_AUTH_USER' => 'admin',
@@ -37,7 +37,24 @@ class DocsApiAccessTest extends TestCase
     {
         $this->withHeaders([
             'PHP_AUTH_USER' => 'admin',
-            'PHP_AUTH_PW' => (string) env('SCRAMBLE_DOCS_PASSWORD'),
+            'PHP_AUTH_PW' => (string) config('scramble.docs_password'),
         ])->getJson('/docs/api')->assertOk();
+    }
+
+    /**
+     * Regresi: di server, SCRAMBLE_DOCS_PASSWORD tidak diset sehingga
+     * env('...') bernilai null dan perbandingan selalu gagal -> 401
+     * meski password benar. Password kosong harus menutup docs, bukan membukanya.
+     */
+    public function test_docs_api_diblokir_saat_password_tidak_dikonfigurasi(): void
+    {
+        config()->set('scramble.docs_password', null);
+
+        $this->getJson('/docs/api')->assertStatus(403);
+
+        $this->withHeaders([
+            'PHP_AUTH_USER' => 'admin',
+            'PHP_AUTH_PW' => 'apapun',
+        ])->getJson('/docs/api')->assertStatus(403);
     }
 }

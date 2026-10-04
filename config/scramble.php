@@ -78,6 +78,12 @@ return [
      */
     'servers' => null,
 
+    /*
+     * Password Basic Auth untuk /docs/api. Dibaca via config (bukan env() langsung)
+     * supaya tetap berlaku setelah `php artisan config:cache`.
+     */
+    'docs_password' => env('SCRAMBLE_DOCS_PASSWORD'),
+
     'middleware' => [
         'web',
         SecureDocsAccess::class,
