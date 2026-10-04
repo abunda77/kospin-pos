@@ -1,20 +1,19 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CheckoutUserController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductUserController;
+use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\WebhookController;
+use App\Http\Controllers\CheckoutController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\PaymentMethodController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\SettingController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\ProductUserController;
-use App\Http\Controllers\Api\CheckoutUserController;
-use App\Http\Controllers\Api\PaymentWebhookController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\Api\WebhookController;
 
-Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:api-login');
 
 Route::apiResource('products', ProductController::class)->middleware(['auth:sanctum']);
 Route::get('products/barcode/{barcode}', [ProductController::class, 'showByBarcode'])->middleware(['auth:sanctum']);
@@ -36,7 +35,7 @@ Route::get('products-public/category/{categoryId}', [ProductUserController::clas
 // Checkout routes
 Route::get('payment-methods-public', [CheckoutUserController::class, 'getPaymentMethods']);
 Route::get('check-member/{nik}', [CheckoutUserController::class, 'checkMember']);
-Route::post('checkout', [CheckoutUserController::class, 'process']);
+Route::post('checkout', [CheckoutUserController::class, 'process'])->middleware('throttle:api-checkout');
 Route::get('orders-public/{orderId}', [CheckoutUserController::class, 'getOrderDetail']);
 
 // DEPRECATED: Midtrans notification handler dalam CheckoutController
@@ -44,5 +43,3 @@ Route::get('orders-public/{orderId}', [CheckoutUserController::class, 'getOrderD
 
 // Midtrans notification handler menggunakan WebhookController yang lebih lengkap
 Route::post('/midtrans/notification', [WebhookController::class, 'handle'])->name('api.midtrans.notification');
-
-

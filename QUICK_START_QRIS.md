@@ -81,7 +81,7 @@ if ($qris) {
 - **QRIS_SETUP.md** - Setup detail
 - **docs/QRIS_INTEGRATION.md** - Integrasi payment
 - **app/Filament/Resources/QrisStaticResource/README.md** - Dokumentasi resource
-- **app/Filament/Resources/QrisStaticResource/USAGE_EXAMPLE.php** - Contoh kode
+- **app/Filament/Resources/QrisStaticResource/USAGE_EXAMPLE.php.txt** - Contoh kode
 
 ---
 

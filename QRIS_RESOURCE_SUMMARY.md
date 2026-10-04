@@ -24,7 +24,7 @@
 - ✅ `QRIS_SETUP.md` - Panduan setup singkat
 - ✅ `INSTALL_QRIS.txt` - Instruksi instalasi
 - ✅ `app/Filament/Resources/QrisStaticResource/README.md` - Dokumentasi lengkap resource
-- ✅ `app/Filament/Resources/QrisStaticResource/USAGE_EXAMPLE.php` - Contoh penggunaan
+- ✅ `app/Filament/Resources/QrisStaticResource/USAGE_EXAMPLE.php.txt` - Contoh penggunaan
 - ✅ `docs/QRIS_INTEGRATION.md` - Panduan integrasi dengan payment flow
 - ✅ `QRIS_RESOURCE_SUMMARY.md` - File ini
 
@@ -211,7 +211,7 @@ Lihat file-file berikut untuk informasi lebih detail:
 
 1. **QRIS_SETUP.md** - Setup dan instalasi
 2. **app/Filament/Resources/QrisStaticResource/README.md** - Dokumentasi resource
-3. **app/Filament/Resources/QrisStaticResource/USAGE_EXAMPLE.php** - Contoh kode
+3. **app/Filament/Resources/QrisStaticResource/USAGE_EXAMPLE.php.txt** - Contoh kode
 4. **docs/QRIS_INTEGRATION.md** - Integrasi dengan payment flow
 
 ## ✨ Next Steps

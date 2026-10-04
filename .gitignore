@@ -1,4 +1,5 @@
 /.phpunit.cache
+/blacklist.txt
 /node_modules
 /public/build
 /public/hot
@@ -31,6 +32,7 @@ storage/framework/testing/.gitignore
 storage/framework/views/.gitignore
 storage/logs/.gitignore
 PENTING.txt
+.codegraph/
 
 
 
@@ -63,4 +65,5 @@ CLAUDE.md
 boost.json
 .agents/
 opencode.json
+
 
