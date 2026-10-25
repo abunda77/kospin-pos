@@ -25,7 +25,6 @@ return [
         'define_via_gate' => false,
         'intercept_gate' => 'before', // after
     ],
-    
 
     'panel_user' => [
         'enabled' => true,
@@ -48,7 +47,7 @@ return [
             'force_delete_any',
         ],
 
-        'pages' => 'page',
+        'page' => 'page',
         'widget' => 'widget',
     ],
 
